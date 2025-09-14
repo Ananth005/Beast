@@ -4,6 +4,7 @@ export type Member = {
   id: string;
   name: string;
   email: string;
+  mobileNumber: string;
   joinDate: string;
   lastVisit: string;
   membershipStatus: 'active' | 'inactive' | 'frozen';

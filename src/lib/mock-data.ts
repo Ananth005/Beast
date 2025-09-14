@@ -2,11 +2,11 @@ import type { Member, Workout, Payment, PersonalRecord, Exercise, WorkoutExercis
 import { subDays, formatISO } from 'date-fns';
 
 export const members: Member[] = [
-  { id: '1', name: 'John Doe', email: 'john.d@example.com', joinDate: '2023-01-15', lastVisit: formatISO(subDays(new Date(), 1)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/1/100/100' },
-  { id: '2', name: 'Jane Smith', email: 'jane.s@example.com', joinDate: '2022-11-20', lastVisit: formatISO(subDays(new Date(), 3)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/2/100/100' },
-  { id: '3', name: 'Mike Johnson', email: 'mike.j@example.com', joinDate: '2023-03-10', lastVisit: formatISO(subDays(new Date(), 35)), membershipStatus: 'inactive', avatarUrl: 'https://picsum.photos/seed/3/100/100' },
-  { id: '4', name: 'Emily Davis', email: 'emily.d@example.com', joinDate: '2021-06-01', lastVisit: formatISO(subDays(new Date(), 5)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/4/100/100' },
-  { id: '5', name: 'Chris Brown', email: 'chris.b@example.com', joinDate: '2023-08-01', lastVisit: formatISO(subDays(new Date(), 95)), membershipStatus: 'frozen', avatarUrl: 'https://picsum.photos/seed/5/100/100' },
+  { id: '1', name: 'John Doe', email: 'john.d@example.com', mobileNumber: '1234567890', joinDate: '2023-01-15', lastVisit: formatISO(subDays(new Date(), 1)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/1/100/100' },
+  { id: '2', name: 'Jane Smith', email: 'jane.s@example.com', mobileNumber: '2345678901', joinDate: '2022-11-20', lastVisit: formatISO(subDays(new Date(), 3)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/2/100/100' },
+  { id: '3', name: 'Mike Johnson', email: 'mike.j@example.com', mobileNumber: '3456789012', joinDate: '2023-03-10', lastVisit: formatISO(subDays(new Date(), 35)), membershipStatus: 'inactive', avatarUrl: 'https://picsum.photos/seed/3/100/100' },
+  { id: '4', name: 'Emily Davis', email: 'emily.d@example.com', mobileNumber: '4567890123', joinDate: '2021-06-01', lastVisit: formatISO(subDays(new Date(), 5)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/4/100/100' },
+  { id: '5', name: 'Chris Brown', email: 'chris.b@example.com', mobileNumber: '5678901234', joinDate: '2023-08-01', lastVisit: formatISO(subDays(new Date(), 95)), membershipStatus: 'frozen', avatarUrl: 'https://picsum.photos/seed/5/100/100' },
 ];
 
 export const exercises: Exercise[] = [

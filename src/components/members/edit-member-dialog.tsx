@@ -34,6 +34,7 @@ import {
 const memberSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
+  mobileNumber: z.string().min(10, { message: 'Mobile number must be at least 10 digits.' }),
   joinDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
   membershipStatus: z.enum(['active', 'inactive', 'frozen']),
 });
@@ -57,6 +58,7 @@ export function EditMemberDialog({ isOpen, onOpenChange, onUpdateMember, member 
       form.reset({
         name: member.name,
         email: member.email,
+        mobileNumber: member.mobileNumber,
         joinDate: member.joinDate.split('T')[0],
         membershipStatus: member.membershipStatus,
       });
@@ -104,6 +106,19 @@ export function EditMemberDialog({ isOpen, onOpenChange, onUpdateMember, member 
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="mobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mobile Number</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

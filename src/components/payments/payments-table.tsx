@@ -41,6 +41,17 @@ export function PaymentsTable({
     });
   };
 
+  const handleSendReminder = (payment: Payment) => {
+    const member = members.find(m => m.id === payment.memberId);
+    if (member && member.mobileNumber) {
+      const message = `Hi ${member.name}, this is a friendly reminder that your payment of $${payment.amount} is due on ${format(parseISO(payment.dueDate), 'MMMM d, yyyy')}.`;
+      const whatsappUrl = `https://wa.me/${member.mobileNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    } else {
+      alert('Member mobile number not found.');
+    }
+  };
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -115,7 +126,7 @@ export function PaymentsTable({
                           Mark as Paid
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem disabled>
+                      <DropdownMenuItem onSelect={() => handleSendReminder(payment)}>
                          <Clock className="mr-2 h-4 w-4" />
                         Send Reminder
                       </DropdownMenuItem>

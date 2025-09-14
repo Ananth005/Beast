@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Calendar, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import { ArrowLeft, Mail, Calendar, CheckCircle, AlertTriangle, Clock, Phone } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { MemberPaymentHistory } from '@/components/members/member-payment-history';
 import { cn } from '@/lib/utils';
@@ -70,6 +70,9 @@ export default function MemberDetailPage() {
             <CardTitle>{member.name}</CardTitle>
             <CardDescription className="flex items-center justify-center sm:justify-start gap-2 mt-1">
                 <Mail className="h-4 w-4"/> {member.email}
+            </CardDescription>
+             <CardDescription className="flex items-center justify-center sm:justify-start gap-2 mt-1">
+                <Phone className="h-4 w-4"/> {member.mobileNumber}
             </CardDescription>
              <Badge
               variant="outline"
