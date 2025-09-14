@@ -4,6 +4,7 @@ import { Flame, Target, Trophy, CalendarDays } from 'lucide-react';
 import { WeeklyProgressChart } from './charts';
 import { personalRecords } from '@/lib/mock-data';
 import { SuggestedExercisesCard } from './suggested-exercises-card';
+import { AnnouncementBanner } from './announcement-banner';
 
 export function UserDashboard() {
   return (
@@ -11,6 +12,7 @@ export function UserDashboard() {
       <h1 className="font-headline text-3xl font-bold tracking-tight">
         Your Dashboard
       </h1>
+      <AnnouncementBanner />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Current Streak"

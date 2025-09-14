@@ -4,6 +4,8 @@ import { AttendanceTrendsChart } from './charts';
 import { revenueData, members } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AnnouncementBanner } from './announcement-banner';
+import { CreateAnnouncement } from './create-announcement';
 
 export function OwnerDashboard() {
   const activeMembersToday = members.filter(m => new Date(m.lastVisit).toDateString() === new Date().toDateString()).length;
@@ -13,6 +15,7 @@ export function OwnerDashboard() {
       <h1 className="font-headline text-3xl font-bold tracking-tight">
         Business Dashboard
       </h1>
+      <AnnouncementBanner />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Active Users Today"
@@ -40,8 +43,9 @@ export function OwnerDashboard() {
         />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
             <AttendanceTrendsChart />
+            <CreateAnnouncement />
         </div>
         <Card>
             <CardHeader>

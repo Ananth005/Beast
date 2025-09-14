@@ -21,6 +21,7 @@ const userNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/workout', label: 'Workout', icon: Dumbbell },
   { href: '/progress', label: 'Progress', icon: BarChart3 },
+  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 

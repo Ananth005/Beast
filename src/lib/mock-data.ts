@@ -1,4 +1,4 @@
-import type { Member, Workout, Payment, PersonalRecord, Exercise, WorkoutExercise, LeaderboardRecord, Challenge } from './types';
+import type { Member, Workout, Payment, PersonalRecord, Exercise, WorkoutExercise, LeaderboardRecord, Challenge, Announcement } from './types';
 import { subDays, formatISO, addDays } from 'date-fns';
 
 export const members: Member[] = [
@@ -116,4 +116,8 @@ export const leaderboardData: Record<string, LeaderboardRecord[]> = {
 export const challenges: Challenge[] = [
     { id: 'ch1', title: 'Summer Shred Challenge', description: 'Lose the most body fat percentage in 8 weeks.', category: 'Fitness', endDate: formatISO(addDays(new Date(), 30)), participantCount: 25 },
     { id: 'ch2', title: 'Strength Gains Competition', description: 'Highest percentage increase in total lift weight (Squat, Bench, Deadlift).', category: 'Strength', endDate: formatISO(addDays(new Date(), 60)), participantCount: 18 },
+];
+
+export const announcements: Announcement[] = [
+    { id: 'an1', message: 'The gym will be closed on July 4th for Independence Day.', expiry: formatISO(addDays(new Date(), 10)) },
 ];

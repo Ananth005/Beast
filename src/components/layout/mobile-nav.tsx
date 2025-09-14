@@ -19,7 +19,7 @@ const userNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/workout', label: 'Workout', icon: Dumbbell },
   { href: '/progress', label: 'Progress', icon: BarChart3 },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
 ];
 
 const ownerNavItems = [
@@ -36,7 +36,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm md:hidden">
-      <div className="grid h-16 grid-cols-4">
+      <div className={cn("grid h-16", role === 'user' ? "grid-cols-4" : "grid-cols-4")}>
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (

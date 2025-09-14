@@ -69,3 +69,9 @@ export type Challenge = {
   endDate: string;
   participantCount: number;
 };
+
+export type Announcement = {
+  id: string;
+  message: string;
+  expiry: string; // ISO date string
+};
