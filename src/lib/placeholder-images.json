@@ -1,3 +1,35 @@
+
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar1",
+      "description": "Avatar of a male gym user",
+      "imageUrl": "https://picsum.photos/seed/1/100/100",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "avatar2",
+      "description": "Avatar of a female gym user",
+      "imageUrl": "https://picsum.photos/seed/2/100/100",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "avatar3",
+      "description": "Avatar of a male gym user",
+      "imageUrl": "https://picsum.photos/seed/3/100/100",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar4",
+      "description": "Avatar of a female gym user",
+      "imageUrl": "https://picsum.photos/seed/4/100/100",
+      "imageHint": "woman smile"
+    },
+    {
+      "id": "avatar5",
+      "description": "Avatar of a male gym user",
+      "imageUrl": "https://picsum.photos/seed/5/100/100",
+      "imageHint": "man smile"
+    }
+  ]
 }
