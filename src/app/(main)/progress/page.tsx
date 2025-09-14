@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StreakCalendar } from "@/components/progress/streak-calendar";
 
 export default function ProgressPage() {
   return (
@@ -6,14 +6,7 @@ export default function ProgressPage() {
         <h1 className="font-headline text-3xl font-bold tracking-tight">
         Your Progress
       </h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Progress & Streaks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Progress tracking, streak calendar, and body metrics coming soon.</p>
-        </CardContent>
-      </Card>
+      <StreakCalendar />
     </div>
   );
 }

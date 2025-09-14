@@ -16,11 +16,15 @@ export const exercises: Exercise[] = [
     { id: 'ex4', name: 'Overhead Press', muscleGroup: 'Shoulders', category: 'strength' },
     { id: 'ex5', name: 'Pull Up', muscleGroup: 'Back', category: 'strength' },
     { id: 'ex6', name: 'Treadmill Run', muscleGroup: 'Full Body', category: 'cardio' },
+    { id: 'ex7', name: 'Bicep Curl', muscleGroup: 'Arms', category: 'strength' },
+    { id: 'ex8', name: 'Tricep Extension', muscleGroup: 'Arms', category: 'strength' },
+    { id: 'ex9', name: 'Leg Press', muscleGroup: 'Legs', category: 'strength' },
+    { id: 'ex10', name: 'Lat Pulldown', muscleGroup: 'Back', category: 'strength' },
 ];
 
 export const currentWorkout: WorkoutExercise[] = [
-    { exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 135 }, { reps: 8, weight: 135 }, { reps: 6, weight: 145 }] },
-    { exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 185 }, { reps: 10, weight: 185 }, { reps: 8, weight: 205 }] },
+    { id: 'we1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 135 }, { reps: 8, weight: 135 }, { reps: 6, weight: 145 }] },
+    { id: 'we2', exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 185 }, { reps: 10, weight: 185 }, { reps: 8, weight: 205 }] },
 ];
 
 export const historicalPerformance: Workout[] = [
@@ -29,8 +33,8 @@ export const historicalPerformance: Workout[] = [
     userId: 'user1', 
     date: formatISO(subDays(new Date(), 7)),
     exercises: [
-      { exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 130 }, { reps: 7, weight: 130 }, { reps: 6, weight: 130 }] },
-      { exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 180 }, { reps: 10, weight: 180 }, { reps: 8, weight: 195 }] },
+      { id: 'w1e1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 130 }, { reps: 7, weight: 130 }, { reps: 6, weight: 130 }] },
+      { id: 'w1e2', exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 180 }, { reps: 10, weight: 180 }, { reps: 8, weight: 195 }] },
     ]
   },
   { 
@@ -38,10 +42,15 @@ export const historicalPerformance: Workout[] = [
     userId: 'user1', 
     date: formatISO(subDays(new Date(), 14)),
     exercises: [
-      { exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 6, weight: 130 }, { reps: 6, weight: 130 }, { reps: 5, weight: 130 }] },
-      { exerciseId: 'ex3', exerciseName: 'Deadlift', sets: [{ reps: 5, weight: 225 }, { reps: 5, weight: 225 }] },
+      { id: 'w2e1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 6, weight: 130 }, { reps: 6, weight: 130 }, { reps: 5, weight: 130 }] },
+      { id: 'w2e2', exerciseId: 'ex3', exerciseName: 'Deadlift', sets: [{ reps: 5, weight: 225 }, { reps: 5, weight: 225 }] },
     ]
   },
+   { id: 'w3', userId: 'user1', date: formatISO(subDays(new Date(), 1)), exercises: [] },
+  { id: 'w4', userId: 'user1', date: formatISO(subDays(new Date(), 2)), exercises: [] },
+  { id: 'w5', userId: 'user1', date: formatISO(subDays(new Date(), 3)), exercises: [] },
+  { id: 'w6', userId: 'user1', date: formatISO(subDays(new Date(), 5)), exercises: [] },
+  { id: 'w7', userId: 'user1', date: formatISO(subDays(new Date(), 8)), exercises: [] },
 ];
 
 

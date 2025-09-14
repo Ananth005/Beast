@@ -24,6 +24,7 @@ export type WorkoutSet = {
 };
 
 export type WorkoutExercise = {
+  id: string;
   exerciseId: string;
   exerciseName: string;
   sets: WorkoutSet[];
