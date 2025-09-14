@@ -52,3 +52,20 @@ export type PersonalRecord = {
   value: string;
   date: string;
 };
+
+export type LeaderboardRecord = {
+  rank: number;
+  memberId: string;
+  memberName: string;
+  memberAvatarUrl: string;
+  score: string;
+};
+
+export type Challenge = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  endDate: string;
+  participantCount: number;
+};

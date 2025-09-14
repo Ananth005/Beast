@@ -14,6 +14,7 @@ import {
   Users,
   CreditCard,
   ClipboardCheck,
+  Trophy,
 } from 'lucide-react';
 
 const userNavItems = [
@@ -27,6 +28,7 @@ const ownerNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/members', label: 'Members', icon: Users },
   { href: '/payments', label: 'Payments', icon: CreditCard },
+  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/check-in', label: 'Check-in', icon: ClipboardCheck },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];

@@ -1,5 +1,5 @@
-import type { Member, Workout, Payment, PersonalRecord, Exercise, WorkoutExercise } from './types';
-import { subDays, formatISO } from 'date-fns';
+import type { Member, Workout, Payment, PersonalRecord, Exercise, WorkoutExercise, LeaderboardRecord, Challenge } from './types';
+import { subDays, formatISO, addDays } from 'date-fns';
 
 export const members: Member[] = [
   { id: '1', name: 'John Doe', email: 'john.d@example.com', mobileNumber: '1234567890', joinDate: '2023-01-15', lastVisit: formatISO(subDays(new Date(), 1)), membershipStatus: 'active', avatarUrl: 'https://picsum.photos/seed/1/100/100' },
@@ -93,4 +93,27 @@ export const payments: Payment[] = [
   { id: 'p2', memberId: '2', name: 'Jane Smith', amount: 50, dueDate: '2023-06-01', status: 'pending' },
   { id: 'p3', memberId: '3', name: 'Mike Johnson', amount: 50, dueDate: '2023-05-01', status: 'overdue' },
   { id: 'p4', memberId: '4', name: 'Emily Davis', amount: 50, dueDate: '2023-06-01', status: 'paid', paidDate: '2023-05-25' },
+];
+
+export const leaderboardData: Record<string, LeaderboardRecord[]> = {
+  'Bench Press': [
+    { rank: 1, memberId: '4', memberName: 'Emily Davis', memberAvatarUrl: 'https://picsum.photos/seed/4/100/100', score: '155 lbs' },
+    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '145 lbs' },
+    { rank: 3, memberId: '2', memberName: 'Jane Smith', memberAvatarUrl: 'https://picsum.photos/seed/2/100/100', score: '120 lbs' },
+  ],
+  'Squat': [
+    { rank: 1, memberId: '2', memberName: 'Jane Smith', memberAvatarUrl: 'https://picsum.photos/seed/2/100/100', score: '225 lbs' },
+    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '205 lbs' },
+    { rank: 3, memberId: '4', memberName: 'Emily Davis', memberAvatarUrl: 'https://picsum.photos/seed/4/100/100', score: '185 lbs' },
+  ],
+  '1-Mile Run': [
+    { rank: 1, memberId: '3', memberName: 'Mike Johnson', memberAvatarUrl: 'https://picsum.photos/seed/3/100/100', score: '6:15' },
+    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '6:30' },
+    { rank: 3, memberId: '5', memberName: 'Chris Brown', memberAvatarUrl: 'https://picsum.photos/seed/5/100/100', score: '6:45' },
+  ],
+};
+
+export const challenges: Challenge[] = [
+    { id: 'ch1', title: 'Summer Shred Challenge', description: 'Lose the most body fat percentage in 8 weeks.', category: 'Fitness', endDate: formatISO(addDays(new Date(), 30)), participantCount: 25 },
+    { id: 'ch2', title: 'Strength Gains Competition', description: 'Highest percentage increase in total lift weight (Squat, Bench, Deadlift).', category: 'Strength', endDate: formatISO(addDays(new Date(), 60)), participantCount: 18 },
 ];
