@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useRole } from '@/contexts/role-context';
+import { User, Shield } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setRole } = useRole();
 
-  const handleLogin = () => {
-    // In a real app, this would involve authentication
+  const handleLogin = (role: 'user' | 'owner') => {
+    setRole(role);
     router.push('/dashboard');
   };
 
@@ -37,11 +40,13 @@ export default function LoginPage() {
           owners to track, manage, and grow.
         </p>
         <div className="flex flex-col gap-4 sm:flex-row">
-          <Button size="lg" onClick={handleLogin}>
-            Enter the Arena
+          <Button size="lg" onClick={() => handleLogin('user')}>
+            <User className="mr-2 h-5 w-5" />
+            Login as Member
           </Button>
-          <Button size="lg" variant="outline">
-            Learn More
+          <Button size="lg" variant="outline" onClick={() => handleLogin('owner')}>
+             <Shield className="mr-2 h-5 w-5" />
+            Login as Owner
           </Button>
         </div>
       </div>

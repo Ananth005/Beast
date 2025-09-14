@@ -6,7 +6,6 @@ import type { UserRole } from '@/lib/types';
 interface RoleContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
-  toggleRole: () => void;
   isMounted: boolean;
 }
 
@@ -20,12 +19,8 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     setIsMounted(true);
   }, []);
 
-  const toggleRole = () => {
-    setRole(prevRole => (prevRole === 'user' ? 'owner' : 'user'));
-  };
-
   return (
-    <RoleContext.Provider value={{ role, setRole, toggleRole, isMounted }}>
+    <RoleContext.Provider value={{ role, setRole, isMounted }}>
       {children}
     </RoleContext.Provider>
   );
