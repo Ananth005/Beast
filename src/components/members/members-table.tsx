@@ -86,9 +86,9 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
           <TableBody>
             {members.length > 0 ? (
               members.map((member) => (
-                <TableRow key={member.id} className="cursor-pointer" onClick={() => handleViewDetails(member.id)}>
+                <TableRow key={member.id} >
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3" onClick={() => handleViewDetails(member.id)}>
                       <Avatar>
                         <AvatarImage src={member.avatarUrl} alt={member.name} />
                         <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
@@ -101,7 +101,7 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden md:table-cell" onClick={() => handleViewDetails(member.id)}>
                     <Badge
                       variant="outline"
                       className={cn(
@@ -116,10 +116,10 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                       {member.membershipStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className="hidden lg:table-cell" onClick={() => handleViewDetails(member.id)}>
                     {format(parseISO(member.joinDate), 'MMMM d, yyyy')}
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className="hidden lg:table-cell" onClick={() => handleViewDetails(member.id)}>
                     {format(parseISO(member.lastVisit), 'MMMM d, yyyy')}
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
