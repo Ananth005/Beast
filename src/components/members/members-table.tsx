@@ -28,12 +28,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Member } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { EditMemberDialog } from './edit-member-dialog';
+import { useRouter } from 'next/navigation';
 
 interface MembersTableProps {
   members: Member[];
@@ -42,6 +43,7 @@ interface MembersTableProps {
 }
 
 export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
+  const router = useRouter();
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
@@ -60,6 +62,10 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
       onDelete(deletingMemberId);
       setDeletingMemberId(null);
     }
+  };
+  
+  const handleViewDetails = (memberId: string) => {
+    router.push(`/members/${memberId}`);
   };
 
   return (
@@ -80,7 +86,7 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
           <TableBody>
             {members.length > 0 ? (
               members.map((member) => (
-                <TableRow key={member.id}>
+                <TableRow key={member.id} className="cursor-pointer" onClick={() => handleViewDetails(member.id)}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -116,7 +122,7 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     {format(parseISO(member.lastVisit), 'MMMM d, yyyy')}
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -126,6 +132,10 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                         <DropdownMenuItem onSelect={() => handleViewDetails(member.id)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleEditClick(member)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
