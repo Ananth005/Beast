@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Member } from '@/lib/types';
+import { Member, Payment, Plan } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { EditMemberDialog } from './edit-member-dialog';
@@ -39,11 +39,13 @@ import { useRouter } from 'next/navigation';
 
 interface MembersTableProps {
   members: Member[];
+  payments: Payment[];
+  plans: Plan[];
   onEdit: (member: Member) => void;
   onDelete: (memberId: string) => void;
 }
 
-export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
+export function MembersTable({ members, payments, plans, onEdit, onDelete }: MembersTableProps) {
   const router = useRouter();
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
@@ -68,6 +70,24 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
     setViewingMember(member);
   };
 
+  const getMemberPaymentInfo = (memberId: string) => {
+    const memberPayments = payments
+      .filter(p => p.memberId === memberId)
+      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+    
+    if (memberPayments.length === 0) {
+      return { planName: 'N/A', paymentStatus: 'N/A' };
+    }
+
+    const latestPayment = memberPayments[0];
+    const plan = plans.find(p => p.id === latestPayment.planId);
+
+    return {
+      planName: plan?.name ?? 'Unknown Plan',
+      paymentStatus: latestPayment.status,
+    };
+  };
+
   return (
     <>
       <div className="rounded-lg border">
@@ -75,9 +95,9 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="hidden lg:table-cell">Join Date</TableHead>
-              <TableHead className="hidden lg:table-cell">Last Visit</TableHead>
+              <TableHead className="hidden md:table-cell">Membership Status</TableHead>
+              <TableHead className="hidden lg:table-cell">Plan</TableHead>
+              <TableHead className="hidden lg:table-cell">Payment Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -85,7 +105,9 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
           </TableHeader>
           <TableBody>
             {members.length > 0 ? (
-              members.map((member) => (
+              members.map((member) => {
+                const { planName, paymentStatus } = getMemberPaymentInfo(member.id);
+                return (
                 <TableRow key={member.id} className="cursor-pointer" onClick={() => handleViewDetails(member)}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -117,10 +139,22 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
-                    {format(parseISO(member.joinDate), 'MMMM d, yyyy')}
+                    {planName}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
-                    {format(parseISO(member.lastVisit), 'MMMM d, yyyy')}
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          paymentStatus === 'paid' &&
+                            'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400',
+                          paymentStatus === 'pending' &&
+                            'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-400',
+                          paymentStatus === 'overdue' &&
+                            'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400'
+                        )}
+                      >
+                        {paymentStatus}
+                      </Badge>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
@@ -148,7 +182,7 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))
+              )})
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">

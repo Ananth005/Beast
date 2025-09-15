@@ -5,36 +5,46 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Search, Loader2 } from 'lucide-react';
 import { MembersTable } from '@/components/members/members-table';
-import { Member } from '@/lib/types';
+import { Member, Payment, Plan } from '@/lib/types';
 import { AddMemberDialog } from '@/components/members/add-member-dialog';
 import { getMembers, addMember as addMemberService, updateMember as updateMemberService, deleteMember as deleteMemberService } from '@/lib/services/member-service';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getPayments } from '@/lib/services/payment-service';
+import { getPlans } from '@/lib/services/plan-service';
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchMembers = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const fetchedMembers = await getMembers();
+        const [fetchedMembers, fetchedPayments, fetchedPlans] = await Promise.all([
+          getMembers(),
+          getPayments(),
+          getPlans(),
+        ]);
         setMembers(fetchedMembers);
+        setPayments(fetchedPayments);
+        setPlans(fetchedPlans);
       } catch (error) {
         toast({
-          title: 'Error fetching members',
-          description: 'Could not load member data. Please try again later.',
+          title: 'Error fetching data',
+          description: 'Could not load data. Please try again later.',
           variant: 'destructive',
         });
       } finally {
         setLoading(false);
       }
     };
-    fetchMembers();
+    fetchData();
   }, [toast]);
 
   const filteredMembers = members.filter((member) =>
@@ -130,6 +140,8 @@ export default function MembersPage() {
       ) : (
         <MembersTable 
             members={filteredMembers} 
+            payments={payments}
+            plans={plans}
             onEdit={handleUpdateMember} 
             onDelete={handleDeleteMember}
         />
