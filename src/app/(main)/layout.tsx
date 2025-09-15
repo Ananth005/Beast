@@ -13,13 +13,13 @@ export default function MainLayout({
     <AuthGuard>
       <SidebarProvider>
         <div className="flex min-h-screen w-full flex-col bg-background">
-          <div className="flex flex-col flex-1">
-            <Header />
+          <Header />
+          <div className="flex flex-1">
             <main className="flex-1 overflow-y-auto p-4 md:p-8">
               {children}
             </main>
+            <SidebarNav />
           </div>
-          <SidebarNav />
         </div>
       </SidebarProvider>
     </AuthGuard>
