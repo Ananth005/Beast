@@ -4,8 +4,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { cn } from '@/lib/utils';
-import { Icons } from '@/components/icons';
 import {
   LayoutDashboard,
   BarChart3,
@@ -42,12 +40,11 @@ export function SidebarNav() {
   const navItems = userRole === 'user' ? userNavItems : ownerNavItems;
 
   return (
-    <Sidebar>
+    <Sidebar side="right">
         <SidebarContent>
             <SidebarHeader>
-                <div className="flex h-16 items-center gap-3 px-2">
-                    <Icons.logo className="h-8 w-8 text-primary" />
-                    <span className="text-xl font-bold tracking-tight">BeastMode</span>
+                 <div className="flex h-16 items-center justify-center p-2">
+                    <span className="text-xl font-bold tracking-tight">Menu</span>
                 </div>
             </SidebarHeader>
             <SidebarMenu>
