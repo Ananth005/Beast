@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Payment } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { DollarSign } from 'lucide-react';
+import { Rupee } from 'lucide-react';
 
 interface MemberPaymentHistoryProps {
   payments: Payment[];
@@ -30,7 +30,7 @@ export function MemberPaymentHistory({ payments }: MemberPaymentHistoryProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5"/>
+            <Rupee className="h-5 w-5"/>
             <span>Payment History</span>
         </CardTitle>
         <CardDescription>
@@ -52,7 +52,7 @@ export function MemberPaymentHistory({ payments }: MemberPaymentHistoryProps) {
               {payments.length > 0 ? (
                 payments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell>${payment.amount.toFixed(2)}</TableCell>
+                    <TableCell>₹{payment.amount.toFixed(2)}</TableCell>
                     <TableCell>
                       {format(parseISO(payment.dueDate), 'MMMM d, yyyy')}
                     </TableCell>

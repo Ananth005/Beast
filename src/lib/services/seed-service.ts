@@ -14,6 +14,13 @@ import {
     personalRecords,
     currentWorkout
 } from '@/lib/mock-data';
+import { Plan } from '../types';
+
+const plans: Plan[] = [
+    { id: 'plan1', name: 'Monthly', price: 1000, duration: 30 },
+    { id: 'plan2', name: 'Quarterly', price: 2500, duration: 90 },
+    { id: 'plan3', name: 'Yearly', price: 9000, duration: 365 },
+];
 
 export async function seedDatabase() {
     try {
@@ -30,7 +37,7 @@ export async function seedDatabase() {
         const paymentsCollection = collection(db, 'payments');
         payments.forEach(payment => {
             const paymentDocRef = doc(paymentsCollection, payment.id);
-            batch.set(paymentDocRef, payment);
+            batch.set(paymentDocRef, {...payment, planId: 'plan1'});
         });
 
         // Seed exercises
@@ -87,6 +94,14 @@ export async function seedDatabase() {
             const announcementDocRef = doc(announcementsCollection, announcement.id);
             batch.set(announcementDocRef, announcement);
         });
+
+        // Seed plans
+        const plansCollection = collection(db, 'plans');
+        plans.forEach(plan => {
+            const planDocRef = doc(plansCollection, plan.id);
+            batch.set(planDocRef, plan);
+        });
+
 
         await batch.commit();
         console.log('Database seeded successfully!');

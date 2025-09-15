@@ -38,13 +38,14 @@ export type Workout = {
 };
 
 export type Payment = {
-  id: string;
+  id:string;
   memberId: string;
   name: string;
   amount: number;
   dueDate: string;
   status: 'paid' | 'pending' | 'overdue';
   paidDate?: string;
+  planId?: string;
 };
 
 export type PersonalRecord = {
@@ -74,4 +75,11 @@ export type Announcement = {
   id: string;
   message: string;
   expiry: string; // ISO date string
+};
+
+export type Plan = {
+  id: string;
+  name: string;
+  price: number;
+  duration: number; // in days
 };

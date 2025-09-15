@@ -1,5 +1,5 @@
 import { StatCard } from './stat-card';
-import { Users, TrendingUp, DollarSign, UserCheck } from 'lucide-react';
+import { Users, TrendingUp, Rupee, UserCheck } from 'lucide-react';
 import { AttendanceTrendsChart } from './charts';
 import { revenueData, members } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -33,9 +33,9 @@ export function OwnerDashboard() {
         />
         <StatCard
           title="Monthly Revenue"
-          value={`$${revenueData.monthly.toLocaleString()}`}
-          icon={DollarSign}
-          description={`$${revenueData.pending} pending`}
+          value={`₹${revenueData.monthly.toLocaleString()}`}
+          icon={Rupee}
+          description={`₹${revenueData.pending} pending`}
         />
         <StatCard
           title="Attendance"

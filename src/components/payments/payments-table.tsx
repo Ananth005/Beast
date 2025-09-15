@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -18,11 +19,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
-import { Payment } from '@/lib/types';
+import { Payment, Member } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { members } from '@/lib/mock-data';
+import { getMembers } from '@/lib/services/member-service';
 
 interface PaymentsTableProps {
   payments: Payment[];
@@ -33,6 +34,16 @@ export function PaymentsTable({
   payments,
   onUpdatePayment,
 }: PaymentsTableProps) {
+  const [members, setMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      const fetchedMembers = await getMembers();
+      setMembers(fetchedMembers);
+    };
+    fetchMembers();
+  }, []);
+
   const handleMarkAsPaid = (payment: Payment) => {
     onUpdatePayment({
       ...payment,
@@ -44,7 +55,7 @@ export function PaymentsTable({
   const handleSendReminder = (payment: Payment) => {
     const member = members.find(m => m.id === payment.memberId);
     if (member && member.mobileNumber) {
-      const message = `Hi ${member.name}, this is a friendly reminder that your payment of $${payment.amount} is due on ${format(parseISO(payment.dueDate), 'MMMM d, yyyy')}.`;
+      const message = `Hi ${member.name}, this is a friendly reminder that your payment of ₹${payment.amount} is due on ${format(parseISO(payment.dueDate), 'MMMM d, yyyy')}.`;
       const whatsappUrl = `https://wa.me/${member.mobileNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     } else {
@@ -83,7 +94,7 @@ export function PaymentsTable({
                   </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  ${payment.amount.toFixed(2)}
+                  ₹{payment.amount.toFixed(2)}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {format(parseISO(payment.dueDate), 'MMMM d, yyyy')}
