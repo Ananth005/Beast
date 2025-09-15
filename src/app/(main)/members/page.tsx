@@ -1,40 +1,98 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Search } from 'lucide-react';
-import { members as initialMembers } from '@/lib/mock-data';
+import { PlusCircle, Search, Loader2 } from 'lucide-react';
 import { MembersTable } from '@/components/members/members-table';
 import { Member } from '@/lib/types';
 import { AddMemberDialog } from '@/components/members/add-member-dialog';
+import { getMembers, addMember as addMemberService, updateMember as updateMemberService, deleteMember as deleteMemberService } from '@/lib/services/member-service';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MembersPage() {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      setLoading(true);
+      try {
+        const fetchedMembers = await getMembers();
+        setMembers(fetchedMembers);
+      } catch (error) {
+        toast({
+          title: 'Error fetching members',
+          description: 'Could not load member data. Please try again later.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMembers();
+  }, [toast]);
 
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddMember = (newMember: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>) => {
-    const member: Member = {
-      ...newMember,
-      id: (members.length + 1).toString(),
-      lastVisit: new Date().toISOString(),
-      avatarUrl: `https://picsum.photos/seed/${members.length + 1}/100/100`,
-    };
-    setMembers([member, ...members]);
+  const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>) => {
+    try {
+      const newMember = await addMemberService(newMemberData);
+      setMembers([newMember, ...members]);
+      toast({
+        title: 'Member Added',
+        description: `${newMember.name} has been successfully added.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add member.',
+        variant: 'destructive',
+      });
+    }
   };
   
-  const handleUpdateMember = (updatedMember: Member) => {
-    setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
+  const handleUpdateMember = async (updatedMember: Member) => {
+    try {
+      await updateMemberService(updatedMember.id, updatedMember);
+      setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
+      toast({
+        title: 'Member Updated',
+        description: 'Member details have been successfully updated.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update member.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDeleteMember = (memberId: string) => {
+  const handleDeleteMember = async (memberId: string) => {
+    const originalMembers = [...members];
     setMembers(members.filter((member) => member.id !== memberId));
+    try {
+      await deleteMemberService(memberId);
+      toast({
+        title: 'Member Deleted',
+        description: 'The member has been successfully deleted.',
+      });
+    } catch (error) {
+      setMembers(originalMembers);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete member.',
+        variant: 'destructive',
+      });
+    }
   };
 
 
@@ -62,11 +120,20 @@ export default function MembersPage() {
         </div>
       </div>
       
-      <MembersTable 
-        members={filteredMembers} 
-        onEdit={handleUpdateMember} 
-        onDelete={handleDeleteMember}
-      />
+      {loading ? (
+        <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+        </div>
+      ) : (
+        <MembersTable 
+            members={filteredMembers} 
+            onEdit={handleUpdateMember} 
+            onDelete={handleDeleteMember}
+        />
+      )}
 
       <AddMemberDialog
         isOpen={isAddMemberOpen}
