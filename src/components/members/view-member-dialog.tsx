@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,8 @@ import { cn } from '@/lib/utils';
 import { Mail, Calendar, CheckCircle, AlertTriangle, Clock, Phone } from 'lucide-react';
 // In a real app, you would fetch this data
 import { payments as allPayments } from '@/lib/mock-data';
+import { Button } from '../ui/button';
+import { useRouter } from 'next/navigation';
 
 interface ViewMemberDialogProps {
   isOpen: boolean;
@@ -23,10 +26,16 @@ interface ViewMemberDialogProps {
 }
 
 export function ViewMemberDialog({ isOpen, onOpenChange, member }: ViewMemberDialogProps) {
+  const router = useRouter();
   if (!member) return null;
 
   // Note: In a real app, you'd fetch payments for the specific member from your backend
   const memberPayments = allPayments.filter((p) => p.memberId === member.id);
+
+  const handleViewFullDetails = () => {
+    onOpenChange(false);
+    router.push(`/members/${member.id}`);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -75,6 +84,9 @@ export function ViewMemberDialog({ isOpen, onOpenChange, member }: ViewMemberDia
                 </div>
             </div>
         </div>
+        <DialogFooter>
+          <Button onClick={handleViewFullDetails}>View Full Details</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

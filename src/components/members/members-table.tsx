@@ -108,16 +108,16 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
               members.map((member) => {
                 const { planName, paymentStatus } = getMemberPaymentInfo(member.id);
                 return (
-                <TableRow key={member.id} className="cursor-pointer" onClick={() => handleViewDetails(member)}>
+                <TableRow key={member.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={member.avatarUrl} alt={member.name} />
                         <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div className="grid gap-0.5">
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-xs text-muted-foreground md:hidden">
+                      <div className="grid gap-0.5" onClick={() => handleViewDetails(member)}>
+                        <p className="font-medium cursor-pointer hover:underline">{member.name}</p>
+                        <p className="text-xs text-muted-foreground hidden md:block">
                           {member.email}
                         </p>
                       </div>
@@ -156,7 +156,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
                         {paymentStatus}
                       </Badge>
                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -166,9 +166,9 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                         <DropdownMenuItem onSelect={() => handleViewDetails(member)}>
+                         <DropdownMenuItem onSelect={() => router.push(`/members/${member.id}`)}>
                           <Eye className="mr-2 h-4 w-4" />
-                          View Details
+                          View Full Details
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleEditClick(member)}>
                           <Edit className="mr-2 h-4 w-4" />
