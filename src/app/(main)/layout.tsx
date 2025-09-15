@@ -1,6 +1,6 @@
 
 import { Header } from '@/components/layout/header';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { AuthGuard } from '@/contexts/auth-context';
 

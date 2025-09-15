@@ -14,9 +14,13 @@ import {
   CreditCard,
   ClipboardCheck,
   Trophy,
+  LogOut,
 } from 'lucide-react';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { Icons } from '../icons';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
+import { useRouter } from 'next/navigation';
 
 const userNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -37,19 +41,29 @@ const ownerNavItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { userRole } = useAuth();
+  const router = useRouter();
+  const { user, userRole, logout } = useAuth();
+  const { isMobile, toggleSidebar } = useSidebar();
   const navItems = userRole === 'user' ? userNavItems : ownerNavItems;
 
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
   return (
-    <Sidebar side="left">
+    <Sidebar side={isMobile ? 'right' : 'left'}>
         <SidebarContent>
-            <SidebarHeader>
+            <SidebarHeader className="flex items-center justify-between md:hidden">
                  <Link href="/dashboard" className="flex items-center gap-3 p-2">
                     <Icons.logo className="h-8 w-8 text-primary" />
                     <span className="text-xl font-bold tracking-tight">
                         BeastMode
                     </span>
                 </Link>
+                <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                    <LogOut className="h-6 w-6 rotate-180"/>
+                </Button>
             </SidebarHeader>
             <SidebarMenu>
                 {navItems.map((item) => {
@@ -67,6 +81,37 @@ export function SidebarNav() {
                 })}
             </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter>
+            {user && (
+                <div className="flex items-center gap-3 p-2">
+                    <Avatar className="h-9 w-9">
+                    <AvatarImage
+                        src={user.photoURL ?? undefined}
+                        alt={user.displayName ?? ''}
+                    />
+                    <AvatarFallback>
+                        {user.displayName?.charAt(0) ?? user.email?.charAt(0)}
+                    </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-medium text-primary truncate">
+                            {user.displayName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                            {user.email}
+                        </p>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleLogout}
+                        aria-label="Log out"
+                        >
+                        <LogOut className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+        </SidebarFooter>
     </Sidebar>
   );
 }
