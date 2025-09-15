@@ -34,6 +34,7 @@ import { Member } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { EditMemberDialog } from './edit-member-dialog';
+import { ViewMemberDialog } from './view-member-dialog';
 import { useRouter } from 'next/navigation';
 
 interface MembersTableProps {
@@ -44,13 +45,12 @@ interface MembersTableProps {
 
 export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
   const router = useRouter();
+  const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   const handleEditClick = (member: Member) => {
     setEditingMember(member);
-    setIsEditOpen(true);
   };
   
   const handleDeleteClick = (memberId: string) => {
@@ -64,8 +64,8 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
     }
   };
   
-  const handleViewDetails = (memberId: string) => {
-    router.push(`/members/${memberId}`);
+  const handleViewDetails = (member: Member) => {
+    setViewingMember(member);
   };
 
   return (
@@ -86,9 +86,9 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
           <TableBody>
             {members.length > 0 ? (
               members.map((member) => (
-                <TableRow key={member.id} >
+                <TableRow key={member.id} className="cursor-pointer" onClick={() => handleViewDetails(member)}>
                   <TableCell>
-                    <div className="flex items-center gap-3" onClick={() => handleViewDetails(member.id)}>
+                    <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={member.avatarUrl} alt={member.name} />
                         <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
@@ -101,7 +101,7 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell" onClick={() => handleViewDetails(member.id)}>
+                  <TableCell className="hidden md:table-cell">
                     <Badge
                       variant="outline"
                       className={cn(
@@ -116,10 +116,10 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                       {member.membershipStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell" onClick={() => handleViewDetails(member.id)}>
+                  <TableCell className="hidden lg:table-cell">
                     {format(parseISO(member.joinDate), 'MMMM d, yyyy')}
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell" onClick={() => handleViewDetails(member.id)}>
+                  <TableCell className="hidden lg:table-cell">
                     {format(parseISO(member.lastVisit), 'MMMM d, yyyy')}
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -132,7 +132,7 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                         <DropdownMenuItem onSelect={() => handleViewDetails(member.id)}>
+                         <DropdownMenuItem onSelect={() => handleViewDetails(member)}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
@@ -160,10 +160,18 @@ export function MembersTable({ members, onEdit, onDelete }: MembersTableProps) {
         </Table>
       </div>
 
+      {viewingMember && (
+        <ViewMemberDialog
+            isOpen={!!viewingMember}
+            onOpenChange={(isOpen) => !isOpen && setViewingMember(null)}
+            member={viewingMember}
+        />
+      )}
+
       {editingMember && (
         <EditMemberDialog
-            isOpen={isEditOpen}
-            onOpenChange={setIsEditOpen}
+            isOpen={!!editingMember}
+            onOpenChange={(isOpen) => !isOpen && setEditingMember(null)}
             member={editingMember}
             onUpdateMember={onEdit}
         />

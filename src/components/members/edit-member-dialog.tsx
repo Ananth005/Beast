@@ -54,7 +54,7 @@ export function EditMemberDialog({ isOpen, onOpenChange, onUpdateMember, member 
   });
 
   useEffect(() => {
-    if (member) {
+    if (member && isOpen) {
       form.reset({
         name: member.name,
         email: member.email,
@@ -63,7 +63,7 @@ export function EditMemberDialog({ isOpen, onOpenChange, onUpdateMember, member 
         membershipStatus: member.membershipStatus,
       });
     }
-  }, [member, form]);
+  }, [member, form, isOpen]);
 
   const onSubmit = (data: MemberFormData) => {
     if (member) {
