@@ -1,16 +1,20 @@
+
 'use client';
 
-import { useRole } from '@/contexts/role-context';
+import { useAuth } from '@/contexts/auth-context';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+
 
 export function Header() {
-  const { role, isMounted } = useRole();
+  const { user, userRole, logout } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
@@ -22,11 +26,20 @@ export function Header() {
       </div>
       
       <div className="flex items-center gap-4">
-        {isMounted && (
+        {user && (
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-                Logged in as <span className="font-bold text-primary">{role}</span>
-            </span>
+             <Avatar className="h-8 w-8">
+                <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ""} />
+                <AvatarFallback>{user.displayName?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-col hidden sm:flex">
+                 <span className="text-sm font-medium">
+                    {user.displayName}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                    Logged in as <span className="font-bold text-primary">{userRole}</span>
+                </span>
+            </div>
             <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
                 <LogOut className="h-4 w-4" />
             </Button>

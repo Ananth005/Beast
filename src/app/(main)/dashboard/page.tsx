@@ -1,14 +1,15 @@
+
 'use client';
 
-import { useRole } from '@/contexts/role-context';
+import { useAuth } from '@/contexts/auth-context';
 import { UserDashboard } from '@/components/dashboard/user-dashboard';
 import { OwnerDashboard } from '@/components/dashboard/owner-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
-  const { role, isMounted } = useRole();
+  const { userRole, loading } = useAuth();
 
-  if (!isMounted) {
+  if (loading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-1/4" />
@@ -28,7 +29,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {role === 'user' ? <UserDashboard /> : <OwnerDashboard />}
+      {userRole === 'user' ? <UserDashboard /> : <OwnerDashboard />}
     </div>
   );
 }

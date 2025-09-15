@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
@@ -16,6 +17,9 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // This logic is now handled by AuthProvider.
+    // This provider is kept for now to avoid breaking components that use it,
+    // but should be phased out.
     setIsMounted(true);
   }, []);
 

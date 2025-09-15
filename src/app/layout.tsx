@@ -1,6 +1,7 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
-import { RoleProvider } from '@/contexts/role-context';
+import { AuthProvider } from '@/contexts/auth-context';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.Node;
 }>) {
   return (
     <html lang="en" className="dark">
@@ -24,10 +25,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <RoleProvider>
+        <AuthProvider>
           {children}
           <Toaster />
-        </RoleProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useRole } from '@/contexts/role-context';
+import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/icons';
 import {
@@ -36,8 +37,8 @@ const ownerNavItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { role } = useRole();
-  const navItems = role === 'user' ? userNavItems : ownerNavItems;
+  const { userRole } = useAuth();
+  const navItems = userRole === 'user' ? userNavItems : ownerNavItems;
 
   return (
     <aside className="hidden w-64 flex-col border-r bg-card md:flex">

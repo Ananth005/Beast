@@ -1,6 +1,8 @@
+
 import { Header } from '@/components/layout/header';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
+import { AuthGuard } from '@/contexts/auth-context';
 
 export default function MainLayout({
   children,
@@ -8,17 +10,19 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background">
-      <div className="flex flex-1">
-        <SidebarNav />
-        <main className="flex w-full flex-1 flex-col pb-20 md:pb-0">
-          <Header />
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            {children}
-          </div>
-        </main>
+    <AuthGuard>
+      <div className="flex min-h-screen w-full flex-col bg-background">
+        <div className="flex flex-1">
+          <SidebarNav />
+          <main className="flex w-full flex-1 flex-col pb-20 md:pb-0">
+            <Header />
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+              {children}
+            </div>
+          </main>
+        </div>
+        <MobileNav />
       </div>
-      <MobileNav />
-    </div>
+    </AuthGuard>
   );
 }
