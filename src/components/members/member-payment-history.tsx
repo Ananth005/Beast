@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Payment } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Rupee } from 'lucide-react';
+import { IndianRupee } from 'lucide-react';
 
 interface MemberPaymentHistoryProps {
   payments: Payment[];
@@ -30,7 +30,7 @@ export function MemberPaymentHistory({ payments }: MemberPaymentHistoryProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-            <Rupee className="h-5 w-5"/>
+            <IndianRupee className="h-5 w-5"/>
             <span>Payment History</span>
         </CardTitle>
         <CardDescription>
