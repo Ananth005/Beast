@@ -1,8 +1,9 @@
 
 import { Header } from '@/components/layout/header';
-import { MobileNav } from '@/components/layout/mobile-nav';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { AuthGuard } from '@/contexts/auth-context';
+import { Icons } from '@/components/icons';
 
 export default function MainLayout({
   children,
@@ -11,18 +12,17 @@ export default function MainLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="flex min-h-screen w-full flex-col bg-background">
-        <div className="flex flex-1">
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full flex-col bg-background">
           <SidebarNav />
-          <main className="flex w-full flex-1 flex-col pb-20 md:pb-0">
+          <div className="flex flex-col flex-1">
             <Header />
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8">
               {children}
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
-        <MobileNav />
-      </div>
+      </SidebarProvider>
     </AuthGuard>
   );
 }

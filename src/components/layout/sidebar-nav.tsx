@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   Trophy,
 } from 'lucide-react';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 const userNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,29 +42,30 @@ export function SidebarNav() {
   const navItems = userRole === 'user' ? userNavItems : ownerNavItems;
 
   return (
-    <aside className="hidden w-64 flex-col border-r bg-card md:flex">
-      <div className="flex h-16 items-center gap-3 border-b px-6">
-        <Icons.logo className="h-8 w-8 text-primary" />
-        <span className="text-xl font-bold tracking-tight">BeastMode</span>
-      </div>
-      <nav className="flex-1 space-y-2 p-4">
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                isActive && 'bg-muted text-primary'
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
+    <Sidebar>
+        <SidebarContent>
+            <SidebarHeader>
+                <div className="flex h-16 items-center gap-3 px-2">
+                    <Icons.logo className="h-8 w-8 text-primary" />
+                    <span className="text-xl font-bold tracking-tight">BeastMode</span>
+                </div>
+            </SidebarHeader>
+            <SidebarMenu>
+                {navItems.map((item) => {
+                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                return (
+                    <SidebarMenuItem key={item.href}>
+                        <Link href={item.href} legacyBehavior passHref>
+                            <SidebarMenuButton isActive={isActive}>
+                                <item.icon className="h-5 w-5" />
+                                <span>{item.label}</span>
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                );
+                })}
+            </SidebarMenu>
+        </SidebarContent>
+    </Sidebar>
   );
 }
