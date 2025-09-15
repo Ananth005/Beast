@@ -55,12 +55,12 @@ export function SidebarNav() {
                 const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                 return (
                     <SidebarMenuItem key={item.href}>
-                        <Link href={item.href} legacyBehavior passHref>
-                            <SidebarMenuButton isActive={isActive}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                            <Link href={item.href}>
                                 <item.icon className="h-5 w-5" />
                                 <span>{item.label}</span>
-                            </SidebarMenuButton>
-                        </Link>
+                            </Link>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                 );
                 })}
