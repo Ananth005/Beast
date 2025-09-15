@@ -95,9 +95,8 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Membership Status</TableHead>
+              <TableHead className="hidden md:table-cell">Payment Status</TableHead>
               <TableHead className="hidden lg:table-cell">Plan</TableHead>
-              <TableHead className="hidden lg:table-cell">Payment Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -124,24 +123,6 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        member.membershipStatus === 'active' &&
-                          'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400',
-                        member.membershipStatus === 'inactive' &&
-                          'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400',
-                        member.membershipStatus === 'frozen' &&
-                          'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-400'
-                      )}
-                    >
-                      {member.membershipStatus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {planName}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
                       <Badge
                         variant="outline"
                         className={cn(
@@ -155,6 +136,9 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
                       >
                         {paymentStatus}
                       </Badge>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {planName}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -185,7 +169,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
               )})
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center">
                   No members found.
                 </TableCell>
               </TableRow>
