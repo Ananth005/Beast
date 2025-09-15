@@ -16,6 +16,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { Icons } from '../icons';
 
 const userNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -40,12 +41,15 @@ export function SidebarNav() {
   const navItems = userRole === 'user' ? userNavItems : ownerNavItems;
 
   return (
-    <Sidebar side="right">
+    <Sidebar side="left">
         <SidebarContent>
             <SidebarHeader>
-                 <div className="flex h-16 items-center justify-center p-2">
-                    <span className="text-xl font-bold tracking-tight">Menu</span>
-                </div>
+                 <Link href="/dashboard" className="flex items-center gap-3 p-2">
+                    <Icons.logo className="h-8 w-8 text-primary" />
+                    <span className="text-xl font-bold tracking-tight">
+                        BeastMode
+                    </span>
+                </Link>
             </SidebarHeader>
             <SidebarMenu>
                 {navItems.map((item) => {
