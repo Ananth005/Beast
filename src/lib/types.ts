@@ -67,7 +67,7 @@ export type Challenge = {
   title: string;
   description: string;
   category: string;
-  endDate: string;
+  endDate: string; // ISO string
   participantCount: number;
 };
 

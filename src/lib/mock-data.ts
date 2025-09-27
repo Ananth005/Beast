@@ -23,8 +23,8 @@ export const exercises: Exercise[] = [
 ];
 
 export const currentWorkout: WorkoutExercise[] = [
-    { id: 'we1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 135 }, { reps: 8, weight: 135 }, { reps: 6, weight: 145 }] },
-    { id: 'we2', exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 185 }, { reps: 10, weight: 185 }, { reps: 8, weight: 205 }] },
+    { id: 'we1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 61 }, { reps: 8, weight: 61 }, { reps: 6, weight: 65 }] },
+    { id: 'we2', exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 84 }, { reps: 10, weight: 84 }, { reps: 8, weight: 93 }] },
 ];
 
 export const historicalPerformance: Workout[] = [
@@ -33,8 +33,8 @@ export const historicalPerformance: Workout[] = [
     userId: 'user1', 
     date: formatISO(subDays(new Date(), 7)),
     exercises: [
-      { id: 'w1e1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 130 }, { reps: 7, weight: 130 }, { reps: 6, weight: 130 }] },
-      { id: 'w1e2', exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 180 }, { reps: 10, weight: 180 }, { reps: 8, weight: 195 }] },
+      { id: 'w1e1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 8, weight: 59 }, { reps: 7, weight: 59 }, { reps: 6, weight: 59 }] },
+      { id: 'w1e2', exerciseId: 'ex2', exerciseName: 'Squat', sets: [{ reps: 10, weight: 81 }, { reps: 10, weight: 81 }, { reps: 8, weight: 88 }] },
     ]
   },
   { 
@@ -42,8 +42,8 @@ export const historicalPerformance: Workout[] = [
     userId: 'user1', 
     date: formatISO(subDays(new Date(), 14)),
     exercises: [
-      { id: 'w2e1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 6, weight: 130 }, { reps: 6, weight: 130 }, { reps: 5, weight: 130 }] },
-      { id: 'w2e2', exerciseId: 'ex3', exerciseName: 'Deadlift', sets: [{ reps: 5, weight: 225 }, { reps: 5, weight: 225 }] },
+      { id: 'w2e1', exerciseId: 'ex1', exerciseName: 'Bench Press', sets: [{ reps: 6, weight: 59 }, { reps: 6, weight: 59 }, { reps: 5, weight: 59 }] },
+      { id: 'w2e2', exerciseId: 'ex3', exerciseName: 'Deadlift', sets: [{ reps: 5, weight: 102 }, { reps: 5, weight: 102 }] },
     ]
   },
    { id: 'w3', userId: 'user1', date: formatISO(subDays(new Date(), 1)), exercises: [] },
@@ -65,9 +65,9 @@ export const weeklyProgressData = [
 ];
 
 export const personalRecords: PersonalRecord[] = [
-  { exerciseName: 'Bench Press', value: '185 lbs', date: '2023-05-20' },
-  { exerciseName: 'Squat', value: '225 lbs', date: '2023-05-22' },
-  { exerciseName: 'Deadlift', value: '315 lbs', date: '2023-04-10' },
+  { exerciseName: 'Bench Press', value: '84 kg', date: '2023-05-20' },
+  { exerciseName: 'Squat', value: '102 kg', date: '2023-05-22' },
+  { exerciseName: 'Deadlift', value: '143 kg', date: '2023-04-10' },
   { exerciseName: '1-Mile Run', value: '6:30', date: '2023-05-15' },
 ];
 
@@ -97,14 +97,14 @@ export const payments: Payment[] = [
 
 export const leaderboardData: Record<string, LeaderboardRecord[]> = {
   'Bench Press': [
-    { rank: 1, memberId: '4', memberName: 'Emily Davis', memberAvatarUrl: 'https://picsum.photos/seed/4/100/100', score: '155 lbs' },
-    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '145 lbs' },
-    { rank: 3, memberId: '2', memberName: 'Jane Smith', memberAvatarUrl: 'https://picsum.photos/seed/2/100/100', score: '120 lbs' },
+    { rank: 1, memberId: '4', memberName: 'Emily Davis', memberAvatarUrl: 'https://picsum.photos/seed/4/100/100', score: '70 kg' },
+    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '65 kg' },
+    { rank: 3, memberId: '2', memberName: 'Jane Smith', memberAvatarUrl: 'https://picsum.photos/seed/2/100/100', score: '54 kg' },
   ],
   'Squat': [
-    { rank: 1, memberId: '2', memberName: 'Jane Smith', memberAvatarUrl: 'https://picsum.photos/seed/2/100/100', score: '225 lbs' },
-    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '205 lbs' },
-    { rank: 3, memberId: '4', memberName: 'Emily Davis', memberAvatarUrl: 'https://picsum.photos/seed/4/100/100', score: '185 lbs' },
+    { rank: 1, memberId: '2', memberName: 'Jane Smith', memberAvatarUrl: 'https://picsum.photos/seed/2/100/100', score: '102 kg' },
+    { rank: 2, memberId: '1', memberName: 'John Doe', memberAvatarUrl: 'https://picsum.photos/seed/1/100/100', score: '93 kg' },
+    { rank: 3, memberId: '4', memberName: 'Emily Davis', memberAvatarUrl: 'https://picsum.photos/seed/4/100/100', score: '84 kg' },
   ],
   '1-Mile Run': [
     { rank: 1, memberId: '3', memberName: 'Mike Johnson', memberAvatarUrl: 'https://picsum.photos/seed/3/100/100', score: '6:15' },
@@ -113,7 +113,7 @@ export const leaderboardData: Record<string, LeaderboardRecord[]> = {
   ],
 };
 
-export const challenges: Challenge[] = [
+export let challenges: Challenge[] = [
     { id: 'ch1', title: 'Summer Shred Challenge', description: 'Lose the most body fat percentage in 8 weeks.', category: 'Fitness', endDate: formatISO(addDays(new Date(), 30)), participantCount: 25 },
     { id: 'ch2', title: 'Strength Gains Competition', description: 'Highest percentage increase in total lift weight (Squat, Bench, Deadlift).', category: 'Strength', endDate: formatISO(addDays(new Date(), 60)), participantCount: 18 },
 ];

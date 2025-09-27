@@ -137,7 +137,7 @@ export function WorkoutForm() {
                         </FormItem>
                       )}
                     />
-                     <span className="text-muted-foreground">lbs</span>
+                     <span className="text-muted-foreground">kg</span>
                     <FormField
                       control={form.control}
                       name={`exercises.${index}.sets.${setIndex}.reps`}
