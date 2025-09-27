@@ -7,26 +7,17 @@ import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Shield } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user, loading, loginAsRole } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
       router.push('/dashboard');
     }
   }, [user, loading, router]);
-
-
-  const handleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error("Error during sign-in:", error);
-    }
-  };
 
   if (loading || user) {
     return (
@@ -60,10 +51,16 @@ export default function LoginPage() {
           owners to track, manage, and grow.
         </p>
         
-        <Button onClick={handleSignIn} size="lg" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Icons.logo className="mr-2 h-5 w-5" />}
-            Sign in with Google
-        </Button>
+        <div className="flex gap-4">
+          <Button onClick={() => loginAsRole('user')} size="lg" disabled={loading}>
+            <User className="mr-2 h-5 w-5" />
+            Login as User
+          </Button>
+          <Button onClick={() => loginAsRole('owner')} size="lg" variant="secondary" disabled={loading}>
+            <Shield className="mr-2 h-5 w-5" />
+            Login as Owner
+          </Button>
+        </div>
 
       </div>
       <footer className="absolute bottom-4 text-xs text-muted-foreground">

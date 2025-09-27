@@ -6,9 +6,6 @@ import {
   onAuthStateChanged,
   signOut,
   User,
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -16,87 +13,71 @@ import type { UserRole } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 
+// Define a mock user type that can be used for bypassing login
+type MockUser = {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL: string;
+};
+
 interface AuthContextType {
-  user: User | null;
+  user: User | MockUser | null;
   userRole: UserRole | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  loginAsRole: (role: UserRole) => void;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | MockUser | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        if (firebaseUser.uid !== user?.uid) { // Prevent re-fetching if user is already set
-          setUser(firebaseUser);
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            setUserRole(userDoc.data().role || 'user');
-          }
-        }
-      } else {
-        setUser(null);
-        setUserRole(null);
-      }
-      setLoading(false);
-    });
-    
-    // Handle redirect result
-    getRedirectResult(auth).then(async (result) => {
-      if (result) {
-        const firebaseUser = result.user;
-        setUser(firebaseUser);
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
+    // This effect now only handles initial loading state and cleanup.
+    // The onAuthStateChanged listener is removed to allow for manual user session control.
+    setLoading(false);
 
-        if (!userDoc.exists()) {
-          // New user, create their document
-          const newUserRole: UserRole = 'user'; // Default to 'user'
-          await setDoc(userDocRef, {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            photoURL: firebaseUser.photoURL,
-            role: newUserRole,
-          });
-          setUserRole(newUserRole);
-        } else {
-          setUserRole(userDoc.data().role || 'user');
+    // If you want to re-enable Firebase authentication, you can add the
+    // onAuthStateChanged listener back here.
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (!user && firebaseUser) {
+             // To prevent overriding the manual login
         }
-        router.push('/dashboard');
-      }
-    }).catch(error => {
-        console.error("Error getting redirect result:", error);
-    }).finally(() => {
-        // This is important to run after onAuthStateChanged has run at least once
-        if(!user) setLoading(false);
     });
-
 
     return () => unsubscribe();
-  }, [user, router]);
+  }, [user]);
 
-  const signInWithGoogle = async () => {
+  const loginAsRole = (role: UserRole) => {
     setLoading(true);
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    const mockUser: MockUser = {
+      uid: role === 'owner' ? 'owner-mock-uid' : 'user-mock-uid',
+      email: `${role}@example.com`,
+      displayName: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
+      photoURL: `https://picsum.photos/seed/${role}/100/100`,
+    };
+    setUser(mockUser);
+    setUserRole(role);
+    setLoading(false);
+    router.push('/dashboard');
   };
 
+
   const logout = async () => {
+    // Reset manual user state
+    setUser(null);
+    setUserRole(null);
+    // Also sign out from Firebase if a real session existed
     await signOut(auth);
     router.push('/');
   };
 
-  const value = { user, userRole, loading, signInWithGoogle, logout };
+  const value = { user, userRole, loading, loginAsRole, logout };
 
   return (
     <AuthContext.Provider value={value}>
