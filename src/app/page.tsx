@@ -1,46 +1,30 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { SignInData } from '@/lib/types';
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-const signInSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(1, { message: 'Password is required.' }),
-});
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading, signIn } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const { user, loading, signInWithGoogle } = useAuth();
 
-  const form = useForm<SignInData>({
-    resolver: zodResolver(signInSchema),
-    defaultValues: { email: '', password: '' },
-  });
-
-  const handleSignIn = async (data: SignInData) => {
-    setError(null);
-    try {
-      await signIn(data);
+  useEffect(() => {
+    if (!loading && user) {
       router.push('/dashboard');
-    } catch (error: any) {
+    }
+  }, [user, loading, router]);
+
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
       console.error("Error during sign-in:", error);
-      setError(error.message || 'An unknown error occurred.');
     }
   };
 
@@ -75,43 +59,12 @@ export default function LoginPage() {
           Unleash your potential. The ultimate platform for gym members and
           owners to track, manage, and grow.
         </p>
-        <Card className="w-full max-w-sm text-left">
-            <CardHeader>
-                <CardTitle>Sign In</CardTitle>
-                <CardDescription>Enter your credentials to access your account.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={form.handleSubmit(handleSignIn)} className="space-y-4">
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Sign-in Failed</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="m@example.com" {...form.register('email')} />
-                        {form.formState.errors.email && <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input id="password" type="password" {...form.register('password')} />
-                         {form.formState.errors.password && <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>}
-                    </div>
-                    <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Sign In
-                    </Button>
-                </form>
-                <div className="mt-4 text-center text-sm">
-                    Don't have an account?{' '}
-                    <Link href="/signup" className="underline">
-                        Sign up
-                    </Link>
-                </div>
-            </CardContent>
-        </Card>
+        
+        <Button onClick={handleSignIn} size="lg" disabled={loading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Icons.logo className="mr-2 h-5 w-5" />}
+            Sign in with Google
+        </Button>
+
       </div>
       <footer className="absolute bottom-4 text-xs text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} BeastMode. All rights reserved.</p>
