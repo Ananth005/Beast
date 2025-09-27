@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -15,34 +16,85 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trophy } from 'lucide-react';
 import { leaderboardData, challenges as initialChallenges } from '@/lib/mock-data';
 import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table';
 import { ChallengesList } from '@/components/leaderboard/challenges-list';
-import { CreateChallengeDialog } from '@/components/leaderboard/create-challenge-dialog';
+import { AddEditChallengeDialog } from '@/components/leaderboard/add-edit-challenge-dialog';
 import { Challenge } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LeaderboardPage() {
+  const { userRole } = useAuth();
   const categories = Object.keys(leaderboardData);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  const [isCreateChallengeOpen, setIsCreateChallengeOpen] = useState(false);
+  
+  const [isChallengeDialogOpen, setIsChallengeDialogOpen] = useState(false);
+  const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(null);
+  const [deletingChallengeId, setDeletingChallengeId] = useState<string | null>(null);
+
   const [challenges, setChallenges] = useState<Challenge[]>(initialChallenges);
   const { toast } = useToast();
 
-  const handleAddChallenge = (newChallengeData: Omit<Challenge, 'id' | 'participantCount'>) => {
-    const newChallenge: Challenge = {
-      ...newChallengeData,
-      id: uuidv4(),
-      participantCount: 0,
-    };
-    setChallenges([newChallenge, ...challenges]);
-    toast({
-      title: 'Challenge Created!',
-      description: `${newChallenge.title} has been added.`,
-    });
+  const handleOpenCreateDialog = () => {
+    setEditingChallenge(null);
+    setIsChallengeDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (challenge: Challenge) => {
+    setEditingChallenge(challenge);
+    setIsChallengeDialogOpen(true);
+  };
+
+  const handleDeleteClick = (challengeId: string) => {
+    setDeletingChallengeId(challengeId);
+  };
+
+  const confirmDelete = () => {
+    if (deletingChallengeId) {
+      setChallenges(challenges.filter((c) => c.id !== deletingChallengeId));
+      toast({
+        title: 'Challenge Deleted',
+        description: 'The challenge has been successfully removed.',
+      });
+      setDeletingChallengeId(null);
+    }
+  };
+
+  const handleSaveChallenge = (challengeData: Omit<Challenge, 'id' | 'participantCount'> | Challenge) => {
+    if ('id' in challengeData) {
+      // Editing existing challenge
+      setChallenges(challenges.map(c => c.id === challengeData.id ? challengeData : c));
+      toast({
+        title: 'Challenge Updated!',
+        description: `${challengeData.title} has been updated.`,
+      });
+    } else {
+      // Creating new challenge
+      const newChallenge: Challenge = {
+        ...challengeData,
+        id: uuidv4(),
+        participantCount: 0,
+      };
+      setChallenges([newChallenge, ...challenges]);
+      toast({
+        title: 'Challenge Created!',
+        description: `${newChallenge.title} has been added.`,
+      });
+    }
   };
 
   return (
@@ -53,15 +105,21 @@ export default function LeaderboardPage() {
             <Trophy className="w-8 h-8 text-primary" />
             <span>Leaderboards & Challenges</span>
           </h1>
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <Button onClick={() => setIsCreateChallengeOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create Challenge
-            </Button>
-          </div>
+          {userRole === 'owner' && (
+            <div className="flex flex-col gap-2 md:flex-row md:items-center">
+              <Button onClick={handleOpenCreateDialog}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Challenge
+              </Button>
+            </div>
+          )}
         </div>
         
-        <ChallengesList challenges={challenges} />
+        <ChallengesList 
+          challenges={challenges}
+          onEdit={userRole === 'owner' ? handleOpenEditDialog : undefined}
+          onDelete={userRole === 'owner' ? handleDeleteClick : undefined}
+        />
 
         <Card>
           <CardHeader>
@@ -90,11 +148,27 @@ export default function LeaderboardPage() {
         </Card>
       </div>
 
-      <CreateChallengeDialog
-        isOpen={isCreateChallengeOpen}
-        onOpenChange={setIsCreateChallengeOpen}
-        onAddChallenge={handleAddChallenge}
+      <AddEditChallengeDialog
+        isOpen={isChallengeDialogOpen}
+        onOpenChange={setIsChallengeDialogOpen}
+        onSaveChallenge={handleSaveChallenge}
+        challenge={editingChallenge}
       />
+
+      <AlertDialog open={!!deletingChallengeId} onOpenChange={(open) => !open && setDeletingChallengeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the challenge.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
