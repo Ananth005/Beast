@@ -7,7 +7,7 @@ import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
-import { User, Shield } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,10 +23,8 @@ export default function LoginPage() {
   const handleSignIn = async () => {
     try {
       await signInWithGoogle();
-      router.push('/dashboard');
     } catch (error) {
       console.error("Error during sign-in:", error);
-      // Optionally, show a toast notification to the user
     }
   };
 
@@ -34,7 +32,7 @@ export default function LoginPage() {
   if (loading || user) {
     return (
         <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-background">
-            <p>Loading...</p>
+            <Loader2 className="h-8 w-8 animate-spin" />
         </div>
     )
   }
