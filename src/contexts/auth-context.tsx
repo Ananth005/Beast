@@ -26,44 +26,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.Node }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const processAuth = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          const firebaseUser = result.user;
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
-
-          if (!userDoc.exists()) {
-            await setDoc(userDocRef, {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
-              photoURL: firebaseUser.photoURL,
-              role: 'user', // Default role for new users
-            });
-            setUserRole('user');
-          } else {
-            setUserRole(userDoc.data().role || 'user');
-          }
-          setUser(firebaseUser);
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        console.error('Error getting redirect result:', error);
-      }
-    };
-
-    processAuth();
-    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
       if (firebaseUser) {
         setUser(firebaseUser);
         const userDocRef = doc(db, 'users', firebaseUser.uid);
@@ -71,18 +42,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userDoc.exists()) {
           setUserRole(userDoc.data().role || 'user');
         } else {
+          // This case handles a user who is logged in but has no user document.
+          // This might happen if Firestore data is cleared but auth state persists.
            await setDoc(userDocRef, {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
-            role: 'user',
+            role: 'user', // Default role
           });
           setUserRole('user');
         }
       } else {
-        setUser(null);
-        setUserRole(null);
+        // Handle the redirect result when the page loads after sign-in.
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                const redirectedUser = result.user;
+                setUser(redirectedUser);
+                const userDocRef = doc(db, 'users', redirectedUser.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (!userDoc.exists()) {
+                    await setDoc(userDocRef, {
+                        uid: redirectedUser.uid,
+                        email: redirectedUser.email,
+                        displayName: redirectedUser.displayName,
+                        photoURL: redirectedUser.photoURL,
+                        role: 'user', // Default role for new users
+                    });
+                    setUserRole('user');
+                } else {
+                    setUserRole(userDoc.data().role || 'user');
+                }
+                router.push('/dashboard');
+            } else {
+                setUser(null);
+                setUserRole(null);
+            }
+        } catch (error) {
+            console.error('Error getting redirect result:', error);
+            setUser(null);
+            setUserRole(null);
+        }
       }
       setLoading(false);
     });
@@ -91,12 +93,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [router]);
   
   const signInWithGoogle = async () => {
+    setLoading(true);
     const provider = new GoogleAuthProvider();
     await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
     await signOut(auth);
+    router.push('/');
   };
 
   const value = { user, userRole, loading, signInWithGoogle, logout };
