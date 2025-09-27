@@ -30,49 +30,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticating, setIsAuthenticating] = useState(true);
   const router = useRouter();
 
-  // Handle redirect result from Google Sign-In
   useEffect(() => {
-    const checkRedirectResult = async () => {
+    const processAuth = async () => {
       try {
         const result = await getRedirectResult(auth);
         if (result && result.user) {
           const firebaseUser = result.user;
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
+
           if (!userDoc.exists()) {
             await setDoc(userDocRef, {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               displayName: firebaseUser.displayName,
               photoURL: firebaseUser.photoURL,
-              role: 'user', // Default role
+              role: 'user', // Default role for new users
             });
+            setUserRole('user');
+          } else {
+            setUserRole(userDoc.data().role || 'user');
           }
+          setUser(firebaseUser);
           router.push('/dashboard');
         }
       } catch (error) {
         console.error('Error getting redirect result:', error);
-      } finally {
-        // This signifies that the initial redirect check is complete.
-        setIsAuthenticating(false);
       }
     };
 
-    checkRedirectResult();
-  }, [router]);
-
-
-  // Listen for general auth state changes
-  useEffect(() => {
+    processAuth();
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Only set loading to true if we are not in the initial auth check.
-      if (!isAuthenticating) {
-        setLoading(true);
-      }
-      
       if (firebaseUser) {
         setUser(firebaseUser);
         const userDocRef = doc(db, 'users', firebaseUser.uid);
@@ -80,8 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userDoc.exists()) {
           setUserRole(userDoc.data().role || 'user');
         } else {
-          // This case might be redundant if the redirect logic handles it, but it's a good fallback.
-          await setDoc(userDocRef, {
+           await setDoc(userDocRef, {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
@@ -94,19 +84,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setUserRole(null);
       }
-      
-      // We are done loading once the initial auth check is complete and onAuthStateChanged has run at least once.
-      if (!isAuthenticating) {
-        setLoading(false);
-      }
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [isAuthenticating]);
-
-  // Combine the loading states
-  const finalLoading = loading || isAuthenticating;
-
+  }, [router]);
+  
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     await signInWithRedirect(auth, provider);
@@ -116,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await signOut(auth);
   };
 
-  const value = { user, userRole, loading: finalLoading, signInWithGoogle, logout };
+  const value = { user, userRole, loading, signInWithGoogle, logout };
 
   return (
     <AuthContext.Provider value={value}>
