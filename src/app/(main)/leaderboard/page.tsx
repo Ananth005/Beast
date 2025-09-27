@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -9,13 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,20 +20,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trophy } from 'lucide-react';
+import { PlusCircle, Trophy, Edit, Trash2 } from 'lucide-react';
 import { leaderboardData, challenges as initialChallenges } from '@/lib/mock-data';
 import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table';
-import { ChallengesList } from '@/components/leaderboard/challenges-list';
 import { AddEditChallengeDialog } from '@/components/leaderboard/add-edit-challenge-dialog';
 import { Challenge } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function LeaderboardPage() {
   const { userRole } = useAuth();
-  const categories = Object.keys(leaderboardData);
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   
   const [isChallengeDialogOpen, setIsChallengeDialogOpen] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(null);
@@ -48,6 +39,13 @@ export default function LeaderboardPage() {
 
   const [challenges, setChallenges] = useState<Challenge[]>(initialChallenges);
   const { toast } = useToast();
+
+  const challengeCategories = useMemo(() => {
+    const categories = challenges.map(c => c.category);
+    return [...new Set(categories)];
+  }, [challenges]);
+
+  const [selectedCategory, setSelectedCategory] = useState(challengeCategories[0] || '');
 
   const handleOpenCreateDialog = () => {
     setEditingChallenge(null);
@@ -77,7 +75,7 @@ export default function LeaderboardPage() {
   const handleSaveChallenge = (challengeData: Omit<Challenge, 'id' | 'participantCount'> | Challenge) => {
     if ('id' in challengeData) {
       // Editing existing challenge
-      setChallenges(challenges.map(c => c.id === challengeData.id ? challengeData : c));
+      setChallenges(challenges.map(c => c.id === challengeData.id ? challengeData as Challenge : c));
       toast({
         title: 'Challenge Updated!',
         description: `${challengeData.title} has been updated.`,
@@ -115,37 +113,51 @@ export default function LeaderboardPage() {
           )}
         </div>
         
-        <ChallengesList 
-          challenges={challenges}
-          onEdit={userRole === 'owner' ? handleOpenEditDialog : undefined}
-          onDelete={userRole === 'owner' ? handleDeleteClick : undefined}
-        />
+        <Tabs defaultValue={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Challenges</CardTitle>
+                    <CardDescription>Join a challenge and see where you rank!</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <TabsList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-auto bg-transparent p-0">
+                        {challenges.map((challenge) => (
+                        <TabsTrigger key={challenge.id} value={challenge.category} className="h-auto p-4 border rounded-lg flex flex-col justify-between items-start text-left data-[state=active]:border-primary data-[state=active]:shadow-lg relative">
+                            <div>
+                                <h3 className="font-semibold">{challenge.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-1 font-normal">{challenge.description}</p>
+                            </div>
+                            {userRole === 'owner' && (
+                                <div className="absolute top-2 right-2 flex gap-1">
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(challenge);}}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteClick(challenge.id);}}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
+                            )}
+                        </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Category Leaderboards</CardTitle>
-            <CardDescription>
-              See who's at the top of their game in different categories.
-            </CardDescription>
-            <div className="pt-4">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-64">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <LeaderboardTable records={leaderboardData[selectedCategory]} />
-          </CardContent>
-        </Card>
+            {challengeCategories.map((category) => (
+                <TabsContent key={category} value={category}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{category} Leaderboard</CardTitle>
+                            <CardDescription>See who's at the top of their game in {category.toLowerCase()}.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <LeaderboardTable records={leaderboardData[category] || []} />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            ))}
+        </Tabs>
+
       </div>
 
       <AddEditChallengeDialog
