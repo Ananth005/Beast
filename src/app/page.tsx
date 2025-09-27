@@ -63,7 +63,11 @@ export default function LoginPage() {
         <div className="flex flex-col gap-4 sm:flex-row">
           <Button size="lg" onClick={handleSignIn}>
             <svg className="mr-2 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.2 64.5c-20.5-16.2-49-26.6-80.2-26.6-62.3 0-113.5 51.2-113.5 113.5s51.2 113.5 113.5 113.5c71.2 0 98.2-53.2 102.7-77.9H248V261.8h239.2z"></path></svg>
-            Sign in with Google
+            Sign in as User
+          </Button>
+           <Button size="lg" onClick={handleSignIn} variant="secondary">
+            <svg className="mr-2 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.2 64.5c-20.5-16.2-49-26.6-80.2-26.6-62.3 0-113.5 51.2-113.5 113.5s51.2 113.5 113.5 113.5c71.2 0 98.2-53.2 102.7-77.9H248V261.8h239.2z"></path></svg>
+            Sign in as Owner
           </Button>
         </div>
       </div>
