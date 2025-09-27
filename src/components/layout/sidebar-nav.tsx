@@ -37,6 +37,7 @@ const ownerNavItems = [
   { href: '/payments', label: 'Payments', icon: CreditCard },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/check-in', label: 'Check-in', icon: ClipboardCheck },
+  { href: '/profile', label: 'Profile', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
