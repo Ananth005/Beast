@@ -1,19 +1,20 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+'use client';
+
+import { useAuth } from '@/contexts/auth-context';
+import { ProfileForm } from '@/components/profile/profile-form';
 
 export default function ProfilePage() {
+  const { user, updateUser } = useAuth();
+
   return (
     <div className="space-y-6">
-        <h1 className="font-headline text-3xl font-bold tracking-tight">
+      <h1 className="font-headline text-3xl font-bold tracking-tight">
         Profile
       </h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile & Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>User profile, stats, and notification settings coming soon.</p>
-        </CardContent>
-      </Card>
+      
+      {user && <ProfileForm user={user} onUpdate={updateUser} />}
+
     </div>
   );
 }

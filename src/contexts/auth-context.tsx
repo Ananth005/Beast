@@ -27,6 +27,7 @@ interface AuthContextType {
   loading: boolean;
   loginAsRole: (role: UserRole) => void;
   logout: () => Promise<void>;
+  updateUser: (newUserData: Partial<MockUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +68,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push('/dashboard');
   };
 
+  const updateUser = (newUserData: Partial<MockUser>) => {
+    if (user) {
+        setUser(prevUser => ({
+            ...prevUser!,
+            ...newUserData,
+        }));
+    }
+  };
+
 
   const logout = async () => {
     // Reset manual user state
@@ -77,7 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push('/');
   };
 
-  const value = { user, userRole, loading, loginAsRole, logout };
+  const value = { user, userRole, loading, loginAsRole, logout, updateUser };
 
   return (
     <AuthContext.Provider value={value}>
