@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -20,16 +20,25 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trophy, Edit, Trash2, UserPlus, GripVertical } from 'lucide-react';
-import { leaderboardData as initialLeaderboards } from '@/lib/mock-data';
+import { PlusCircle, Trophy, Edit, Trash2, UserPlus, Loader2 } from 'lucide-react';
 import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table';
 import { AddEditLeaderboardDialog } from '@/components/leaderboard/add-edit-leaderboard-dialog';
 import { AddEditRecordDialog } from '@/components/leaderboard/add-edit-record-dialog';
-import { LeaderboardRecord } from '@/lib/types';
-import { v4 as uuidv4 } from 'uuid';
+import { LeaderboardRecord, Member } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { members } from '@/lib/mock-data';
+import { getMembers } from '@/lib/services/member-service';
+import { 
+  getLeaderboards, 
+  addLeaderboard,
+  updateLeaderboard,
+  deleteLeaderboard,
+  addRecord,
+  updateRecord,
+  deleteRecord
+} from '@/lib/services/leaderboard-service';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export type LeaderboardCategory = {
   id: string;
@@ -41,13 +50,9 @@ export default function LeaderboardPage() {
   const { userRole } = useAuth();
   const { toast } = useToast();
 
-  const [leaderboards, setLeaderboards] = useState<LeaderboardCategory[]>(() => 
-    Object.entries(initialLeaderboards).map(([title, records], index) => ({
-      id: `cat-${index + 1}`,
-      title,
-      records: records.sort((a, b) => a.rank - b.rank)
-    }))
-  );
+  const [leaderboards, setLeaderboards] = useState<LeaderboardCategory[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [isLeaderboardDialogOpen, setIsLeaderboardDialogOpen] = useState(false);
   const [editingLeaderboard, setEditingLeaderboard] = useState<LeaderboardCategory | null>(null);
@@ -56,8 +61,27 @@ export default function LeaderboardPage() {
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<{record: LeaderboardRecord, leaderboardId: string} | null>(null);
   const [addingRecordToLeaderboard, setAddingRecordToLeaderboard] = useState<string | null>(null);
-  const [deletingRecord, setDeletingRecord] = useState<{recordId: string, leaderboardId: string} | null>(null);
+  const [deletingRecord, setDeletingRecord] = useState<{record: LeaderboardRecord, leaderboardId: string} | null>(null);
 
+  const fetchData = async () => {
+    try {
+      const [fetchedLeaderboards, fetchedMembers] = await Promise.all([
+          getLeaderboards(),
+          getMembers()
+      ]);
+      setLeaderboards(fetchedLeaderboards);
+      setMembers(fetchedMembers);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Could not fetch leaderboards.', variant: 'destructive' });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // --- Leaderboard Category Management ---
   const handleOpenCreateLeaderboard = () => {
@@ -70,26 +94,34 @@ export default function LeaderboardPage() {
     setIsLeaderboardDialogOpen(true);
   };
   
-  const handleSaveLeaderboard = (data: { title: string }) => {
-    if (editingLeaderboard) {
-      setLeaderboards(leaderboards.map(lb => 
-        lb.id === editingLeaderboard.id ? { ...lb, title: data.title } : lb
-      ));
-      toast({ title: 'Leaderboard Updated', description: `"${data.title}" has been updated.` });
-    } else {
-      const newLeaderboard: LeaderboardCategory = { id: uuidv4(), title: data.title, records: [] };
-      setLeaderboards([...leaderboards, newLeaderboard]);
-      toast({ title: 'Leaderboard Created', description: `"${data.title}" has been added.` });
+  const handleSaveLeaderboard = async (data: { title: string }) => {
+    try {
+      if (editingLeaderboard) {
+        await updateLeaderboard(editingLeaderboard.id, { title: data.title });
+        toast({ title: 'Leaderboard Updated', description: `"${data.title}" has been updated.` });
+      } else {
+        await addLeaderboard({ title: data.title, records: [] });
+        toast({ title: 'Leaderboard Created', description: `"${data.title}" has been added.` });
+      }
+      fetchData();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to save leaderboard.', variant: 'destructive' });
     }
   };
 
   const handleDeleteLeaderboard = (id: string) => setDeletingLeaderboardId(id);
 
-  const confirmDeleteLeaderboard = () => {
+  const confirmDeleteLeaderboard = async () => {
     if (deletingLeaderboardId) {
-      setLeaderboards(leaderboards.filter(lb => lb.id !== deletingLeaderboardId));
-      toast({ title: 'Leaderboard Deleted' });
-      setDeletingLeaderboardId(null);
+      try {
+        await deleteLeaderboard(deletingLeaderboardId);
+        toast({ title: 'Leaderboard Deleted' });
+        fetchData();
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to delete leaderboard.', variant: 'destructive' });
+      } finally {
+        setDeletingLeaderboardId(null);
+      }
     }
   };
 
@@ -106,7 +138,7 @@ export default function LeaderboardPage() {
     setIsRecordDialogOpen(true);
   };
 
-  const handleSaveRecord = (data: { memberId: string; score: string; }) => {
+  const handleSaveRecord = async (data: { memberId: string; score: string; }) => {
     const member = members.find(m => m.id === data.memberId);
     if (!member) {
       toast({ title: 'Error', description: 'Selected member not found.', variant: 'destructive' });
@@ -116,57 +148,57 @@ export default function LeaderboardPage() {
     const leaderboardId = addingRecordToLeaderboard || editingRecord?.leaderboardId;
     if (!leaderboardId) return;
 
-    setLeaderboards(leaderboards.map(lb => {
-      if (lb.id !== leaderboardId) return lb;
-      
-      let newRecords: LeaderboardRecord[];
+    try {
+      const newRecordData = { 
+        ...data,
+        memberName: member.name,
+        memberAvatarUrl: member.avatarUrl,
+      };
+
       if (editingRecord) { // Editing existing record
-        newRecords = lb.records.map(r => r.rank === editingRecord.record.rank ? { ...r, ...data, memberName: member.name, memberAvatarUrl: member.avatarUrl } : r);
+        await updateRecord(leaderboardId, { ...editingRecord.record, ...newRecordData });
         toast({ title: 'Record Updated' });
       } else { // Adding new record
-        const newRecord: LeaderboardRecord = {
-          rank: lb.records.length + 1, // This is a simplification, rank should be recalculated
-          memberId: member.id,
-          memberName: member.name,
-          memberAvatarUrl: member.avatarUrl,
-          score: data.score,
-        };
-        newRecords = [...lb.records, newRecord];
+        await addRecord(leaderboardId, newRecordData);
         toast({ title: 'Record Added' });
       }
-      
-      // Re-sort records by rank, assuming lower rank is better. This is naive.
-      // A real implementation would parse scores.
-      newRecords.sort((a,b) => a.rank - b.rank);
-      // Re-assign ranks based on new sort order
-      newRecords.forEach((r, i) => r.rank = i + 1);
-
-      return { ...lb, records: newRecords };
-    }));
+      fetchData();
+    } catch(error) {
+      toast({ title: 'Error', description: 'Failed to save record.', variant: 'destructive' });
+    }
   };
 
-  const handleDeleteRecord = (recordId: string, leaderboardId: string) => {
-    setDeletingRecord({ recordId, leaderboardId });
+  const handleDeleteRecord = (record: LeaderboardRecord, leaderboardId: string) => {
+    setDeletingRecord({ record, leaderboardId });
   };
   
-  const confirmDeleteRecord = () => {
+  const confirmDeleteRecord = async () => {
     if (!deletingRecord) return;
-    const { recordId, leaderboardId } = deletingRecord;
+    const { record, leaderboardId } = deletingRecord;
 
-    setLeaderboards(leaderboards.map(lb => {
-      if (lb.id !== leaderboardId) return lb;
-      
-      const newRecords = lb.records.filter(r => r.rank.toString() !== recordId); // Assuming rank is unique ID for now
-      // Re-assign ranks
-      newRecords.sort((a,b) => a.rank - b.rank).forEach((r, i) => r.rank = i + 1);
-
-      return { ...lb, records: newRecords };
-    }));
-
-    toast({ title: 'Record Deleted' });
-    setDeletingRecord(null);
+    try {
+      await deleteRecord(leaderboardId, record);
+      toast({ title: 'Record Deleted' });
+      fetchData();
+    } catch (error) {
+       toast({ title: 'Error', description: 'Failed to delete record.', variant: 'destructive' });
+    } finally {
+      setDeletingRecord(null);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-44" />
+        </div>
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -212,7 +244,7 @@ export default function LeaderboardPage() {
               <LeaderboardTable 
                 records={leaderboard.records}
                 onEdit={userRole === 'owner' ? (record) => handleOpenEditRecord(record, leaderboard.id) : undefined}
-                onDelete={userRole === 'owner' ? (recordId) => handleDeleteRecord(recordId, leaderboard.id) : undefined}
+                onDelete={userRole === 'owner' ? (record) => handleDeleteRecord(record, leaderboard.id) : undefined}
               />
             </CardContent>
           </Card>

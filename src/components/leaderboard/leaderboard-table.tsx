@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -24,7 +25,7 @@ import { cn } from '@/lib/utils';
 interface LeaderboardTableProps {
   records: LeaderboardRecord[];
   onEdit?: (record: LeaderboardRecord) => void;
-  onDelete?: (recordId: string) => void;
+  onDelete?: (record: LeaderboardRecord) => void;
 }
 
 export function LeaderboardTable({ records, onEdit, onDelete }: LeaderboardTableProps) {
@@ -43,8 +44,8 @@ export function LeaderboardTable({ records, onEdit, onDelete }: LeaderboardTable
         </TableHeader>
         <TableBody>
           {records.length > 0 ? (
-            records.map((record) => (
-              <TableRow key={record.rank}>
+            records.map((record, index) => (
+              <TableRow key={`${record.memberId}-${index}`}>
                 <TableCell className="font-bold text-lg text-center">
                   <div className="flex items-center justify-center">
                     {record.rank === 1 && <Trophy className="w-6 h-6 text-yellow-500 mr-2" />}
@@ -77,7 +78,7 @@ export function LeaderboardTable({ records, onEdit, onDelete }: LeaderboardTable
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => onDelete(record.rank.toString())} className="text-destructive">
+                        <DropdownMenuItem onSelect={() => onDelete(record)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" />
                           <span>Delete</span>
                         </DropdownMenuItem>

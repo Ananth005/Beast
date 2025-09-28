@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -8,12 +9,13 @@ import {
     payments,
     exercises,
     historicalPerformance,
-    leaderboardData,
+    leaderboardData as initialLeaderboards,
     challenges,
     announcements,
     personalRecords,
     currentWorkout
 } from '@/lib/mock-data';
+import { LeaderboardCategory } from '@/app/(main)/leaderboard/page';
 import { Plan } from '../types';
 
 const plans: Plan[] = [
@@ -76,10 +78,14 @@ export async function seedDatabase() {
 
         // Seed leaderboards
         const leaderboardsCollection = collection(db, 'leaderboards');
-        for (const category in leaderboardData) {
-            const categoryDocRef = doc(leaderboardsCollection, category.replace(/\s+/g, '-').toLowerCase());
-            batch.set(categoryDocRef, { category: category, records: leaderboardData[category] });
-        }
+        Object.entries(initialLeaderboards).forEach(([title, records]) => {
+            const newLeaderboard: Omit<LeaderboardCategory, 'id'> = {
+                title,
+                records: records.sort((a,b) => a.rank - b.rank)
+            };
+            const leaderboardDocRef = doc(leaderboardsCollection, title.replace(/\s+/g, '-').toLowerCase());
+            batch.set(leaderboardDocRef, newLeaderboard);
+        });
 
         // Seed challenges
         const challengesCollection = collection(db, 'challenges');
