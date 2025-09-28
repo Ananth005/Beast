@@ -127,7 +127,7 @@ export function MemberPaymentsTable({
                   {member.lastPayment ? `₹${member.lastPayment.amount.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell>
-                  {member.lastPayment ? (
+                  <div className="flex justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -137,7 +137,7 @@ export function MemberPaymentsTable({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {member.paymentStatus !== 'paid' && (
+                        {member.lastPayment && member.paymentStatus !== 'paid' && (
                           <DropdownMenuItem
                             onSelect={() => handleMarkAsPaid(member.lastPayment)}
                           >
@@ -145,15 +145,20 @@ export function MemberPaymentsTable({
                             Mark as Paid
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onSelect={() => handleSendReminder(member, member.lastPayment)}>
-                          <Clock className="mr-2 h-4 w-4" />
-                          Send Reminder
-                        </DropdownMenuItem>
+                        {member.lastPayment && (
+                          <DropdownMenuItem onSelect={() => handleSendReminder(member, member.lastPayment)}>
+                            <Clock className="mr-2 h-4 w-4" />
+                            Send Reminder
+                          </DropdownMenuItem>
+                        )}
+                         {(!member.lastPayment || member.paymentStatus === 'paid') && (
+                            <DropdownMenuItem disabled>
+                                No actions available
+                            </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  ) : (
-                     <div className='flex justify-end pr-4'>-</div>
-                  )}
+                   </div>
                 </TableCell>
               </TableRow>
             ))
