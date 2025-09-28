@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Payment, Plan } from '@/lib/types';
-import { PaymentsTable } from '@/components/payments/payments-table';
+import { Payment, Plan, Member } from '@/lib/types';
+import { MemberPaymentsTable } from '@/components/payments/member-payments-table';
 import {
   Select,
   SelectContent,
@@ -21,8 +21,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlanManagement } from '@/components/payments/plan-management';
 import { getPlans, addPlan, updatePlan, deletePlan } from '@/lib/services/plan-service';
 import { useAuth } from '@/contexts/auth-context';
+import { getMembers } from '@/lib/services/member-service';
+
+type MemberWithPayment = Member & { paymentStatus: string; lastPayment?: Payment };
 
 export default function PaymentsPage() {
+  const [members, setMembers] = useState<Member[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,10 +37,12 @@ export default function PaymentsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [fetchedPayments, fetchedPlans] = await Promise.all([
+      const [fetchedMembers, fetchedPayments, fetchedPlans] = await Promise.all([
+        getMembers(),
         getPayments(),
         getPlans(),
       ]);
+      setMembers(fetchedMembers);
       setPayments(fetchedPayments);
       setPlans(fetchedPlans);
     } catch (error) {
@@ -58,8 +64,7 @@ export default function PaymentsPage() {
   const handleUpdatePayment = async (updatedPayment: Payment) => {
     try {
       await updatePayment(updatedPayment.id, updatedPayment);
-      // Refetch data to ensure UI is consistent
-      await fetchData();
+      await fetchData(); // Refetch data
       toast({
         title: 'Payment Updated',
         description: 'Payment status has been successfully updated.',
@@ -93,7 +98,7 @@ export default function PaymentsPage() {
   const handleUpdatePlan = async (updatedPlan: Plan) => {
     try {
       await updatePlan(updatedPlan.id, updatedPlan);
-       await fetchData(); // Refetch
+      await fetchData(); // Refetch
       toast({
         title: 'Plan Updated',
         description: 'Plan details have been successfully updated.',
@@ -124,11 +129,21 @@ export default function PaymentsPage() {
     }
   };
 
-
-  const filteredPayments = payments.filter((payment) => {
+  const membersWithPayments = members.map(member => {
+    const memberPayments = payments
+      .filter(p => p.memberId === member.id)
+      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+    const lastPayment = memberPayments[0];
+    return {
+      ...member,
+      paymentStatus: lastPayment?.status || 'N/A',
+      lastPayment: lastPayment,
+    };
+  }).filter(member => {
     if (filter === 'all') return true;
-    return payment.status === filter;
+    return member.paymentStatus === filter;
   });
+
 
   return (
     <div className="space-y-6">
@@ -161,6 +176,7 @@ export default function PaymentsPage() {
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="N/A">No Payments</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -173,8 +189,9 @@ export default function PaymentsPage() {
             <Skeleton className="h-12 w-full" />
         </div>
       ) : (
-        <PaymentsTable
-          payments={filteredPayments}
+        <MemberPaymentsTable
+          membersWithPayments={membersWithPayments}
+          plans={plans}
           onUpdatePayment={handleUpdatePayment}
         />
       )}
