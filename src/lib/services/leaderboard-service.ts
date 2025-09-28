@@ -53,25 +53,11 @@ export async function deleteLeaderboard(id: string): Promise<void> {
 
 
 // --- Record Management ---
-
-// This helper re-ranks records after a change
-const reRankAndSortRecords = (records: LeaderboardRecord[]): LeaderboardRecord[] => {
-    // This is a naive sort. For scores like "100kg" vs "5:45", this will not work as intended.
-    // A more complex implementation would parse the score. For now, we assume higher score value is better.
-    // We will sort descending by the numeric part of the score.
-    const sorted = records.sort((a, b) => {
-        const scoreA = parseFloat(a.score) || 0;
-        const scoreB = parseFloat(b.score) || 0;
-        return scoreB - scoreA;
-    });
-
-    return sorted.map((record, index) => ({
-        ...record,
-        rank: index + 1
-    }));
+const sortRecords = (records: LeaderboardRecord[]): LeaderboardRecord[] => {
+    return records.sort((a, b) => a.rank - b.rank);
 };
 
-export async function addRecord(leaderboardId: string, recordData: Omit<LeaderboardRecord, 'rank'>): Promise<void> {
+export async function addRecord(leaderboardId: string, recordData: LeaderboardRecord): Promise<void> {
     const leaderboardDocRef = doc(db, 'leaderboards', leaderboardId);
     const leaderboardDoc = await getDoc(leaderboardDocRef);
 
@@ -81,12 +67,16 @@ export async function addRecord(leaderboardId: string, recordData: Omit<Leaderbo
     
     let currentRecords: LeaderboardRecord[] = leaderboardDoc.data()?.records || [];
     
-    // Add the new record with a temporary rank
-    currentRecords.push({ ...recordData, rank: currentRecords.length + 1 });
-    
-    const newRankedRecords = reRankAndSortRecords(currentRecords);
+    // Check if a record for this member already exists
+    if (currentRecords.some(r => r.memberId === recordData.memberId)) {
+        throw new Error('A record for this member already exists in this leaderboard.');
+    }
 
-    await updateDoc(leaderboardDocRef, { records: newRankedRecords });
+    currentRecords.push(recordData);
+    
+    const newSortedRecords = sortRecords(currentRecords);
+
+    await updateDoc(leaderboardDocRef, { records: newSortedRecords });
 }
 
 export async function updateRecord(leaderboardId: string, updatedRecord: LeaderboardRecord): Promise<void> {
@@ -108,9 +98,9 @@ export async function updateRecord(leaderboardId: string, updatedRecord: Leaderb
 
     currentRecords[recordIndex] = { ...currentRecords[recordIndex], ...updatedRecord };
 
-    const newRankedRecords = reRankAndSortRecords(currentRecords);
+    const newSortedRecords = sortRecords(currentRecords);
 
-    await updateDoc(leaderboardDocRef, { records: newRankedRecords });
+    await updateDoc(leaderboardDocRef, { records: newSortedRecords });
 }
 
 
@@ -125,7 +115,7 @@ export async function deleteRecord(leaderboardId: string, recordToDelete: Leader
     let currentRecords: LeaderboardRecord[] = leaderboardDoc.data()?.records || [];
     
     const newRecords = currentRecords.filter(r => r.memberId !== recordToDelete.memberId);
-    const newRankedRecords = reRankAndSortRecords(newRecords);
+    const newSortedRecords = sortRecords(newRecords);
 
-    await updateDoc(leaderboardDocRef, { records: newRankedRecords });
+    await updateDoc(leaderboardDocRef, { records: newSortedRecords });
 }

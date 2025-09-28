@@ -22,6 +22,7 @@ import { LeaderboardRecord, Member } from '@/lib/types';
 const recordSchema = z.object({
   memberId: z.string().min(1, { message: 'Please select a member.' }),
   score: z.string().min(1, { message: 'Score cannot be empty.' }),
+  rank: z.coerce.number().int().min(1, { message: 'Rank must be at least 1.' }),
 });
 
 type RecordFormData = z.infer<typeof recordSchema>;
@@ -44,6 +45,7 @@ export function AddEditRecordDialog({ isOpen, onOpenChange, onSave, record, memb
       form.reset({
         memberId: record?.memberId || '',
         score: record?.score || '',
+        rank: record?.rank || 1,
       });
     }
   }, [record, members, form, isOpen]);
@@ -98,6 +100,19 @@ export function AddEditRecordDialog({ isOpen, onOpenChange, onSave, record, memb
                   <FormLabel>Score / Record</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 100 kg or 5:45" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="rank"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rank</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 1" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

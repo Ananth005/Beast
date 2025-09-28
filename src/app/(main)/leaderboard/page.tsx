@@ -138,7 +138,7 @@ export default function LeaderboardPage() {
     setIsRecordDialogOpen(true);
   };
 
-  const handleSaveRecord = async (data: { memberId: string; score: string; }) => {
+  const handleSaveRecord = async (data: { memberId: string; score: string; rank: number; }) => {
     const member = members.find(m => m.id === data.memberId);
     if (!member) {
       toast({ title: 'Error', description: 'Selected member not found.', variant: 'destructive' });
@@ -149,7 +149,7 @@ export default function LeaderboardPage() {
     if (!leaderboardId) return;
 
     try {
-      const newRecordData = { 
+      const newRecordData: LeaderboardRecord = { 
         ...data,
         memberName: member.name,
         memberAvatarUrl: member.avatarUrl,
@@ -163,8 +163,8 @@ export default function LeaderboardPage() {
         toast({ title: 'Record Added' });
       }
       fetchData();
-    } catch(error) {
-      toast({ title: 'Error', description: 'Failed to save record.', variant: 'destructive' });
+    } catch(error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to save record.', variant: 'destructive' });
     }
   };
 
