@@ -6,6 +6,8 @@ import {
   onAuthStateChanged,
   signOut,
   User,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -16,9 +18,9 @@ import { useRouter } from 'next/navigation';
 // Define a mock user type that can be used for bypassing login
 type MockUser = {
   uid: string;
-  email: string;
-  displayName: string;
-  photoURL: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
 };
 
 interface AuthContextType {
@@ -26,6 +28,7 @@ interface AuthContextType {
   userRole: UserRole | null;
   loading: boolean;
   loginAsRole: (role: UserRole) => void;
+  loginWithGoogle: () => void;
   logout: () => Promise<void>;
   updateUser: (newUserData: Partial<MockUser>) => void;
 }
@@ -39,20 +42,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // This effect now only handles initial loading state and cleanup.
-    // The onAuthStateChanged listener is removed to allow for manual user session control.
-    setLoading(false);
-
-    // If you want to re-enable Firebase authentication, you can add the
-    // onAuthStateChanged listener back here.
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        if (!user && firebaseUser) {
-             // To prevent overriding the manual login
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setLoading(true);
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserRole(userDoc.data().role);
+        } else {
+          // New user, assign default role
+          await setDoc(userDocRef, {
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            role: 'user',
+          });
+          setUserRole('user');
         }
+        setUser(firebaseUser);
+        setLoading(false);
+      } else {
+        setUser(null);
+        setUserRole(null);
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, []);
 
   const loginAsRole = (role: UserRole) => {
     setLoading(true);
@@ -68,6 +85,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push('/dashboard');
   };
 
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener will handle the rest
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+      setLoading(false);
+    }
+  };
+
   const updateUser = (newUserData: Partial<MockUser>) => {
     if (user) {
         setUser(prevUser => ({
@@ -79,15 +109,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const logout = async () => {
+    await signOut(auth);
     // Reset manual user state
     setUser(null);
     setUserRole(null);
-    // Also sign out from Firebase if a real session existed
-    await signOut(auth);
     router.push('/');
   };
 
-  const value = { user, userRole, loading, loginAsRole, logout, updateUser };
+  const value = { user, userRole, loading, loginAsRole, loginWithGoogle, logout, updateUser };
 
   return (
     <AuthContext.Provider value={value}>
