@@ -10,10 +10,11 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import type { UserRole, Member } from '@/lib/types';
+import { doc, getDoc, setDoc, getDocs, collection, writeBatch } from 'firebase/firestore';
+import type { UserRole, Member, LeaderboardRecord } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { LeaderboardCategory } from '@/app/(main)/leaderboard/page';
 
 // Define a mock user type that can be used for bypassing login
 type MockUser = {
@@ -30,7 +31,7 @@ interface AuthContextType {
   loginAsRole: (role: UserRole) => void;
   loginWithGoogle: () => void;
   logout: () => Promise<void>;
-  updateUser: (newUserData: Partial<MockUser>) => void;
+  updateUser: (newUserData: Partial<MockUser>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -155,29 +156,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateUser = async (newUserData: Partial<MockUser>) => {
-    if (user) {
-        const updatedUser = { ...user, ...newUserData };
-        setUser(updatedUser);
+    if (!user) return;
 
-        const isMockUser = user?.uid.includes('-mock-uid');
-        if (isMockUser) {
-            localStorage.setItem('mockUser', JSON.stringify(updatedUser));
-        }
-        
-        // Update user collection
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, { 
-            displayName: updatedUser.displayName, 
-            photoURL: updatedUser.photoURL 
-        }, { merge: true });
+    const updatedUser = { ...user, ...newUserData };
+    setUser(updatedUser);
 
-        // Update members collection
-        const memberDocRef = doc(db, 'members', user.uid);
-         await setDoc(memberDocRef, { 
-            name: updatedUser.displayName, 
-            avatarUrl: updatedUser.photoURL 
-        }, { merge: true });
+    const isMockUser = user.uid.includes('-mock-uid');
+    if (isMockUser) {
+        localStorage.setItem('mockUser', JSON.stringify(updatedUser));
     }
+    
+    const batch = writeBatch(db);
+
+    // 1. Update 'users' collection
+    const userDocRef = doc(db, 'users', user.uid);
+    batch.set(userDocRef, { 
+        displayName: updatedUser.displayName, 
+        photoURL: updatedUser.photoURL 
+    }, { merge: true });
+
+    // 2. Update 'members' collection
+    const memberDocRef = doc(db, 'members', user.uid);
+    batch.set(memberDocRef, { 
+        name: updatedUser.displayName, 
+        avatarUrl: updatedUser.photoURL 
+    }, { merge: true });
+
+    // 3. Update 'leaderboards' collection
+    const leaderboardsCollectionRef = collection(db, 'leaderboards');
+    const leaderboardSnapshot = await getDocs(leaderboardsCollectionRef);
+    
+    leaderboardSnapshot.forEach(leaderboardDoc => {
+        const leaderboardData = leaderboardDoc.data() as LeaderboardCategory;
+        const records = leaderboardData.records || [];
+        
+        let recordUpdated = false;
+        const updatedRecords = records.map(record => {
+            if (record.memberId === user.uid) {
+                recordUpdated = true;
+                return { 
+                    ...record, 
+                    memberName: updatedUser.displayName || record.memberName, 
+                    memberAvatarUrl: updatedUser.photoURL || record.memberAvatarUrl 
+                };
+            }
+            return record;
+        });
+
+        if (recordUpdated) {
+            batch.update(leaderboardDoc.ref, { records: updatedRecords });
+        }
+    });
+
+    await batch.commit();
   };
 
 
