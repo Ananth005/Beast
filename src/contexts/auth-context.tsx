@@ -14,7 +14,6 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { UserRole, Member } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { addMember, getMembers } from '@/lib/services/member-service';
 
 // Define a mock user type that can be used for bypassing login
 type MockUser = {
@@ -47,7 +46,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (firebaseUser) {
         setLoading(true);
         
-        // Check for role in 'users' collection
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
         let currentRole: UserRole = 'user';
@@ -55,33 +53,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (userDoc.exists()) {
           currentRole = userDoc.data().role;
           setUserRole(currentRole);
+           // Update last visit time
+           await setDoc(userDocRef, { lastVisit: new Date().toISOString() }, { merge: true });
         } else {
-          // New user from Google Sign-In, assign default role
+          // New user from Google Sign-In, create their record in 'users' collection
           await setDoc(userDocRef, {
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
             role: 'user',
-          });
-          setUserRole('user');
-        }
-
-        // Check if user exists as a member, if not, create them
-        const memberDocRef = doc(db, 'members', firebaseUser.uid);
-        const memberDoc = await getDoc(memberDocRef);
-
-        if (!memberDoc.exists()) {
-          const newMemberData: Omit<Member, 'id'> = {
-            name: firebaseUser.displayName || 'New User',
-            email: firebaseUser.email || '',
-            mobileNumber: firebaseUser.phoneNumber || '',
             joinDate: new Date().toISOString(),
             lastVisit: new Date().toISOString(),
             membershipStatus: 'active',
-            avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
-          };
-          // We use setDoc here to use the firebaseUser.uid as the document ID
-          await setDoc(doc(db, 'members', firebaseUser.uid), newMemberData);
+          });
+          setUserRole('user');
         }
         
         setUser(firebaseUser);
@@ -107,21 +92,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       photoURL: `https://picsum.photos/seed/${role}/100/100`,
     };
     
-    // Ensure mock user exists in members collection for consistency
-    const memberDocRef = doc(db, 'members', mockUid);
-    const memberDoc = await getDoc(memberDocRef);
-    if (!memberDoc.exists()) {
-        const newMemberData: Member = {
-            id: mockUid,
-            name: mockUser.displayName || 'Mock User',
-            email: mockUser.email || '',
-            mobileNumber: '1234567890',
+    // Ensure mock user exists in users collection for consistency
+    const userDocRef = doc(db, 'users', mockUid);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            displayName: mockUser.displayName,
+            email: mockUser.email,
+            photoURL: mockUser.photoURL,
+            role: role,
             joinDate: new Date().toISOString(),
             lastVisit: new Date().toISOString(),
             membershipStatus: 'active',
-            avatarUrl: mockUser.photoURL || '',
-        };
-        await setDoc(memberDocRef, newMemberData);
+        });
     }
     
     setUser(mockUser);
@@ -143,12 +126,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateUser = (newUserData: Partial<MockUser>) => {
+  const updateUser = async (newUserData: Partial<MockUser>) => {
     if (user) {
         setUser(prevUser => ({
             ...prevUser!,
             ...newUserData,
         }));
+        // also update in firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, newUserData, { merge: true });
     }
   };
 

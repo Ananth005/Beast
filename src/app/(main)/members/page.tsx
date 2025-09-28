@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,44 +23,45 @@ export default function MembersPage() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const { toast } = useToast();
 
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      const [fetchedMembers, fetchedPayments, fetchedPlans] = await Promise.all([
+        getMembers(),
+        getPayments(),
+        getPlans(),
+      ]);
+      setMembers(fetchedMembers);
+      setPayments(fetchedPayments);
+      setPlans(fetchedPlans);
+    } catch (error) {
+      toast({
+        title: 'Error fetching data',
+        description: 'Could not load data. Please try again later.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [fetchedMembers, fetchedPayments, fetchedPlans] = await Promise.all([
-          getMembers(),
-          getPayments(),
-          getPlans(),
-        ]);
-        setMembers(fetchedMembers);
-        setPayments(fetchedPayments);
-        setPlans(fetchedPlans);
-      } catch (error) {
-        toast({
-          title: 'Error fetching data',
-          description: 'Could not load data. Please try again later.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchAllData();
   }, [toast]);
 
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>) => {
     try {
-      const newMember = await addMemberService(newMemberData);
-      setMembers([newMember, ...members]);
+      await addMemberService(newMemberData);
       toast({
         title: 'Member Added',
-        description: `${newMember.name} has been successfully added.`,
+        description: `${newMemberData.name} has been successfully added.`,
       });
+      fetchAllData(); // Refresh all data
     } catch (error) {
       toast({
         title: 'Error',
@@ -77,6 +79,7 @@ export default function MembersPage() {
         title: 'Member Updated',
         description: 'Member details have been successfully updated.',
       });
+      fetchAllData(); // Refresh all data
     } catch (error) {
       toast({
         title: 'Error',
@@ -125,7 +128,7 @@ export default function MembersPage() {
           </div>
           <Button onClick={() => setIsAddMemberOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Member
+            Add Non-Login Member
           </Button>
         </div>
       </div>

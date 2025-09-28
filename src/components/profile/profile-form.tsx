@@ -51,6 +51,16 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
   const [avatarPreview, setAvatarPreview] = React.useState(user?.photoURL || '');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (user) {
+      form.reset({
+        displayName: user.displayName || '',
+        email: user.email || '',
+      });
+      setAvatarPreview(user.photoURL || '');
+    }
+  }, [user, form]);
+
   const onSubmit = (data: ProfileFormValues) => {
     try {
       onUpdate({ ...data, photoURL: avatarPreview });
@@ -136,7 +146,7 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="your@email.com" {...field} />
+                    <Input type="email" placeholder="your@email.com" {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
