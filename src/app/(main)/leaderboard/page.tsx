@@ -221,7 +221,7 @@ export default function LeaderboardPage() {
             <CardHeader className="flex-row items-center justify-between">
               <div>
                 <CardTitle>{leaderboard.title}</CardTitle>
-                <CardDescription>Official gym records for {leaderboard.title.toLowerCase()}.</CardDescription>
+                <CardDescription>Official gym records for {leaderboard.title ? leaderboard.title.toLowerCase() : ''}.</CardDescription>
               </div>
               {userRole === 'owner' && (
                 <div className="flex items-center gap-1">
