@@ -162,5 +162,3 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
     </Card>
   );
 }
-
-    

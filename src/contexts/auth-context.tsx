@@ -10,14 +10,14 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, getDocs, collection, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocs, collection, writeBatch, updateDoc } from 'firebase/firestore';
 import type { UserRole, Member, LeaderboardRecord } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { LeaderboardCategory } from '@/app/(main)/leaderboard/page';
 
 // Define a mock user type that can be used for bypassing login
-type MockUser = {
+type AppUser = {
   uid: string;
   email: string | null;
   displayName: string | null;
@@ -25,18 +25,18 @@ type MockUser = {
 };
 
 interface AuthContextType {
-  user: User | MockUser | null;
+  user: AppUser | null;
   userRole: UserRole | null;
   loading: boolean;
   loginAsRole: (role: UserRole) => void;
   loginWithGoogle: () => void;
   logout: () => Promise<void>;
-  updateUser: (newUserData: Partial<MockUser>) => Promise<void>;
+  updateUser: (newUserData: Partial<AppUser>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const syncUserToMembers = async (user: User | MockUser, role: UserRole) => {
+const syncUserToMembers = async (user: AppUser, role: UserRole) => {
     const memberDocRef = doc(db, 'members', user.uid);
     const memberDoc = await getDoc(memberDocRef);
 
@@ -71,7 +71,7 @@ const syncUserToMembers = async (user: User | MockUser, role: UserRole) => {
 
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | MockUser | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -84,22 +84,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
         let currentRole: UserRole = 'user';
+        let userProfileData: Partial<AppUser> = {};
 
         if (userDoc.exists()) {
-          currentRole = userDoc.data().role;
+          const dbUser = userDoc.data();
+          currentRole = dbUser.role;
+          userProfileData = {
+              displayName: dbUser.displayName,
+              photoURL: dbUser.photoURL,
+          };
         } else {
           // New user from Google Sign-In, create their record in 'users' collection
-          await setDoc(userDocRef, {
-            email: firebaseUser.email,
+           userProfileData = {
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
+          };
+          await setDoc(userDocRef, {
+            email: firebaseUser.email,
+            ...userProfileData,
             role: 'user',
           });
         }
         
+        const appUser: AppUser = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: userProfileData.displayName || firebaseUser.displayName,
+            photoURL: userProfileData.photoURL || firebaseUser.photoURL,
+        };
+
         setUserRole(currentRole);
-        setUser(firebaseUser);
-        await syncUserToMembers(firebaseUser, currentRole);
+        setUser(appUser);
+        await syncUserToMembers(appUser, currentRole);
         
         setLoading(false);
 
@@ -124,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loginAsRole = async (role: UserRole) => {
     setLoading(true);
     const mockUid = role === 'owner' ? 'owner-mock-uid' : 'user-mock-uid';
-    const mockUser: MockUser = {
+    const mockUser: AppUser = {
       uid: mockUid,
       email: `${role}@example.com`,
       displayName: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
@@ -155,7 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateUser = async (newUserData: Partial<MockUser>) => {
+  const updateUser = async (newUserData: Partial<AppUser>) => {
     if (!user) return;
 
     const updatedUser = { ...user, ...newUserData };
@@ -164,11 +180,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const isMockUser = user.uid.includes('-mock-uid');
     if (isMockUser) {
         localStorage.setItem('mockUser', JSON.stringify(updatedUser));
+    } else if (auth.currentUser) {
+        // This updates the auth service profile, but Firestore is our source of truth
+        try {
+          await (auth.currentUser, { 
+              displayName: updatedUser.displayName, 
+              photoURL: updatedUser.photoURL 
+          });
+        } catch (error) {
+          console.error("Error updating Firebase Auth profile:", error);
+        }
     }
     
     const batch = writeBatch(db);
 
-    // 1. Update 'users' collection
+    // 1. Update 'users' collection (Our source of truth)
     const userDocRef = doc(db, 'users', user.uid);
     batch.set(userDocRef, { 
         displayName: updatedUser.displayName, 
