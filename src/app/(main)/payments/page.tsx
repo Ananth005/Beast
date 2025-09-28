@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Payment, Plan } from '@/lib/types';
 import { PaymentsTable } from '@/components/payments/payments-table';
 import {
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlanManagement } from '@/components/payments/plan-management';
 import { getPlans, addPlan, updatePlan, deletePlan } from '@/lib/services/plan-service';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -27,36 +28,38 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const { toast } = useToast();
+  const { userRole } = useAuth();
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [fetchedPayments, fetchedPlans] = await Promise.all([
+        getPayments(),
+        getPlans(),
+      ]);
+      setPayments(fetchedPayments);
+      setPlans(fetchedPlans);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not load data. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [fetchedPayments, fetchedPlans] = await Promise.all([
-          getPayments(),
-          getPlans(),
-        ]);
-        setPayments(fetchedPayments);
-        setPlans(fetchedPlans);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Could not load data. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, [toast]);
+  }, [fetchData]);
 
   const handleUpdatePayment = async (updatedPayment: Payment) => {
     try {
       await updatePayment(updatedPayment.id, updatedPayment);
-      setPayments(
-        payments.map((p) => (p.id === updatedPayment.id ? updatedPayment : p))
-      );
+      // Refetch data to ensure UI is consistent
+      await fetchData();
       toast({
         title: 'Payment Updated',
         description: 'Payment status has been successfully updated.',
@@ -72,11 +75,11 @@ export default function PaymentsPage() {
 
   const handleAddPlan = async (newPlanData: Omit<Plan, 'id'>) => {
     try {
-      const newPlan = await addPlan(newPlanData);
-      setPlans([newPlan, ...plans]);
+      await addPlan(newPlanData);
+      await fetchData(); // Refetch
       toast({
         title: 'Plan Added',
-        description: `${newPlan.name} has been successfully added.`,
+        description: `${newPlanData.name} has been successfully added.`,
       });
     } catch (error) {
       toast({
@@ -90,7 +93,7 @@ export default function PaymentsPage() {
   const handleUpdatePlan = async (updatedPlan: Plan) => {
     try {
       await updatePlan(updatedPlan.id, updatedPlan);
-      setPlans(plans.map(p => p.id === updatedPlan.id ? updatedPlan : p));
+       await fetchData(); // Refetch
       toast({
         title: 'Plan Updated',
         description: 'Plan details have been successfully updated.',
@@ -105,19 +108,17 @@ export default function PaymentsPage() {
   };
   
   const handleDeletePlan = async (planId: string) => {
-    const originalPlans = [...plans];
-    setPlans(plans.filter((p) => p.id !== planId));
     try {
       await deletePlan(planId);
+      await fetchData(); // Refetch
       toast({
         title: 'Plan Deleted',
         description: 'The plan has been successfully deleted.',
       });
     } catch (error) {
-      setPlans(originalPlans);
       toast({
         title: 'Error',
-        description: 'Failed to delete plan.',
+        description: 'Failed to delete plan. Members might be associated with it.',
         variant: 'destructive',
       });
     }
@@ -135,12 +136,15 @@ export default function PaymentsPage() {
         Payments & Plans
       </h1>
 
-      <PlanManagement 
-        plans={plans}
-        onAdd={handleAddPlan}
-        onEdit={handleUpdatePlan}
-        onDelete={handleDeletePlan}
-      />
+      {userRole === 'owner' && (
+        <PlanManagement 
+            plans={plans}
+            onAdd={handleAddPlan}
+            onEdit={handleUpdatePlan}
+            onDelete={handleDeletePlan}
+        />
+      )}
+
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="font-headline text-2xl font-bold tracking-tight">

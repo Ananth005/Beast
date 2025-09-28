@@ -39,8 +39,12 @@ export function PaymentsTable({
 
   useEffect(() => {
     const fetchMembers = async () => {
-      const fetchedMembers = await getMembers();
-      setMembers(fetchedMembers);
+      try {
+        const fetchedMembers = await getMembers();
+        setMembers(fetchedMembers);
+      } catch (error) {
+        console.error("Failed to fetch members for payments table:", error);
+      }
     };
     fetchMembers();
   }, []);
@@ -60,7 +64,7 @@ export function PaymentsTable({
       const whatsappUrl = `https://wa.me/${member.mobileNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     } else {
-      alert('Member mobile number not found.');
+      alert('Member mobile number not found or member could not be identified.');
     }
   };
 
@@ -88,10 +92,10 @@ export function PaymentsTable({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={member?.avatarUrl} alt={payment.name} />
-                      <AvatarFallback>{payment.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={member?.avatarUrl} alt={member?.name ?? payment.name} />
+                      <AvatarFallback>{(member?.name ?? payment.name).charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <p className="font-medium">{payment.name}</p>
+                    <p className="font-medium">{member?.name ?? payment.name}</p>
                   </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -150,7 +154,7 @@ export function PaymentsTable({
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
-                No payments found.
+                No payments found for the selected filter.
               </TableCell>
             </TableRow>
           )}
