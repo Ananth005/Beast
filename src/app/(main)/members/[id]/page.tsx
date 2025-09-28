@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -23,6 +24,8 @@ export default function MemberDetailPage() {
   const params = useParams();
   const memberId = params.id as string;
 
+  // In a real app, you would fetch this data from your backend
+  // For now, we use mock data. This will be updated later.
   const member = members.find((m) => m.id === memberId);
   const memberPayments = allPayments.filter((p) => p.memberId === memberId);
 
