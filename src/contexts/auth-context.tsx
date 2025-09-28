@@ -11,9 +11,10 @@ import {
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import type { UserRole } from '@/lib/types';
+import type { UserRole, Member } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { addMember, getMembers } from '@/lib/services/member-service';
 
 // Define a mock user type that can be used for bypassing login
 type MockUser = {
@@ -45,12 +46,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setLoading(true);
+        
+        // Check for role in 'users' collection
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
+        let currentRole: UserRole = 'user';
+
         if (userDoc.exists()) {
-          setUserRole(userDoc.data().role);
+          currentRole = userDoc.data().role;
+          setUserRole(currentRole);
         } else {
-          // New user, assign default role
+          // New user from Google Sign-In, assign default role
           await setDoc(userDocRef, {
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
@@ -59,8 +65,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           });
           setUserRole('user');
         }
+
+        // Check if user exists as a member, if not, create them
+        const memberDocRef = doc(db, 'members', firebaseUser.uid);
+        const memberDoc = await getDoc(memberDocRef);
+
+        if (!memberDoc.exists()) {
+          const newMemberData: Omit<Member, 'id'> = {
+            name: firebaseUser.displayName || 'New User',
+            email: firebaseUser.email || '',
+            mobileNumber: firebaseUser.phoneNumber || '',
+            joinDate: new Date().toISOString(),
+            lastVisit: new Date().toISOString(),
+            membershipStatus: 'active',
+            avatarUrl: firebaseUser.photoURL || `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
+          };
+          // We use setDoc here to use the firebaseUser.uid as the document ID
+          await setDoc(doc(db, 'members', firebaseUser.uid), newMemberData);
+        }
+        
         setUser(firebaseUser);
         setLoading(false);
+
       } else {
         setUser(null);
         setUserRole(null);
@@ -71,14 +97,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const loginAsRole = (role: UserRole) => {
+  const loginAsRole = async (role: UserRole) => {
     setLoading(true);
+    const mockUid = role === 'owner' ? 'owner-mock-uid' : 'user-mock-uid';
     const mockUser: MockUser = {
-      uid: role === 'owner' ? 'owner-mock-uid' : 'user-mock-uid',
+      uid: mockUid,
       email: `${role}@example.com`,
       displayName: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
       photoURL: `https://picsum.photos/seed/${role}/100/100`,
     };
+    
+    // Ensure mock user exists in members collection for consistency
+    const memberDocRef = doc(db, 'members', mockUid);
+    const memberDoc = await getDoc(memberDocRef);
+    if (!memberDoc.exists()) {
+        const newMemberData: Member = {
+            id: mockUid,
+            name: mockUser.displayName || 'Mock User',
+            email: mockUser.email || '',
+            mobileNumber: '1234567890',
+            joinDate: new Date().toISOString(),
+            lastVisit: new Date().toISOString(),
+            membershipStatus: 'active',
+            avatarUrl: mockUser.photoURL || '',
+        };
+        await setDoc(memberDocRef, newMemberData);
+    }
+    
     setUser(mockUser);
     setUserRole(role);
     setLoading(false);
@@ -109,8 +154,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const logout = async () => {
-    await signOut(auth);
-    // Reset manual user state
+    // Check if user is a mock user
+    const isMockUser = user?.uid.includes('-mock-uid');
+    if (!isMockUser) {
+        await signOut(auth);
+    }
+    // Reset all local state
     setUser(null);
     setUserRole(null);
     router.push('/');
@@ -172,3 +221,5 @@ export const AuthGuard = ({ children, roles }: { children: React.ReactNode, role
 
   return <>{children}</>;
 };
+
+    
