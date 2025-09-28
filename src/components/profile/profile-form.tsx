@@ -31,11 +31,12 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   user: {
+    uid: string;
     displayName?: string | null;
     email?: string | null;
     photoURL?: string | null;
   };
-  onUpdate: (data: Partial<ProfileFormValues & { photoURL: string }>) => void;
+  onUpdate: (data: Partial<ProfileFormValues & { photoURL: string }>) => Promise<void>;
 }
 
 export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
@@ -57,13 +58,13 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
         displayName: user.displayName || '',
         email: user.email || '',
       });
-      setAvatarPreview(user.photoURL || '');
+      setAvatarPreview(user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`);
     }
   }, [user, form]);
 
-  const onSubmit = (data: ProfileFormValues) => {
+  const onSubmit = async (data: ProfileFormValues) => {
     try {
-      onUpdate({ ...data, photoURL: avatarPreview });
+      await onUpdate({ ...data, photoURL: avatarPreview });
       toast({
         title: 'Profile updated',
         description: 'Your profile has been successfully updated.',
@@ -161,3 +162,5 @@ export function ProfileForm({ user, onUpdate }: ProfileFormProps) {
     </Card>
   );
 }
+
+    

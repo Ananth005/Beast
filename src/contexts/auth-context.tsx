@@ -40,7 +40,7 @@ const syncUserToMembers = async (user: User | MockUser, role: UserRole) => {
     const memberDoc = await getDoc(memberDocRef);
 
     if (!memberDoc.exists()) {
-        const newMemberData = {
+        const newMemberData: Member = {
             id: user.uid,
             name: user.displayName || 'New Member',
             email: user.email || '',
@@ -103,8 +103,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
 
       } else {
-        setUser(null);
-        setUserRole(null);
+        const localMockUser = localStorage.getItem('mockUser');
+        const localMockRole = localStorage.getItem('mockRole');
+        if(localMockUser && localMockRole) {
+            const mockUser = JSON.parse(localMockUser);
+            setUser(mockUser);
+            setUserRole(localMockRole as UserRole);
+        } else {
+            setUser(null);
+            setUserRole(null);
+        }
         setLoading(false);
       }
     });
@@ -122,6 +130,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       photoURL: `https://picsum.photos/seed/${role}/100/100`,
     };
     
+    localStorage.setItem('mockUser', JSON.stringify(mockUser));
+    localStorage.setItem('mockRole', role);
+
     setUser(mockUser);
     setUserRole(role);
     await syncUserToMembers(mockUser, role);
@@ -147,6 +158,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user) {
         const updatedUser = { ...user, ...newUserData };
         setUser(updatedUser);
+
+        const isMockUser = user?.uid.includes('-mock-uid');
+        if (isMockUser) {
+            localStorage.setItem('mockUser', JSON.stringify(updatedUser));
+        }
         
         // Update user collection
         const userDocRef = doc(db, 'users', user.uid);
@@ -166,9 +182,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const logout = async () => {
-    // Check if user is a mock user
     const isMockUser = user?.uid.includes('-mock-uid');
-    if (!isMockUser) {
+    if (isMockUser) {
+        localStorage.removeItem('mockUser');
+        localStorage.removeItem('mockRole');
+    } else {
         await signOut(auth);
     }
     // Reset all local state
