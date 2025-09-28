@@ -127,31 +127,33 @@ export function MemberPaymentsTable({
                   {member.lastPayment ? `₹${member.lastPayment.amount.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      {member.paymentStatus !== 'paid' && member.lastPayment && (
-                        <DropdownMenuItem
-                          onSelect={() => handleMarkAsPaid(member.lastPayment)}
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Mark as Paid
-                        </DropdownMenuItem>
-                      )}
-                      {member.lastPayment && (
+                  {member.lastPayment ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {member.paymentStatus !== 'paid' && (
+                          <DropdownMenuItem
+                            onSelect={() => handleMarkAsPaid(member.lastPayment)}
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Mark as Paid
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onSelect={() => handleSendReminder(member, member.lastPayment)}>
-                           <Clock className="mr-2 h-4 w-4" />
+                          <Clock className="mr-2 h-4 w-4" />
                           Send Reminder
                         </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                     <div className='flex justify-end pr-4'>-</div>
+                  )}
                 </TableCell>
               </TableRow>
             ))
