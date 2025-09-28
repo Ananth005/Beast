@@ -15,6 +15,7 @@ import { ListFilter, Loader2 } from 'lucide-react';
 import {
   getPayments,
   updatePayment,
+  addPayment,
 } from '@/lib/services/payment-service';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,8 +23,13 @@ import { PlanManagement } from '@/components/payments/plan-management';
 import { getPlans, addPlan, updatePlan, deletePlan } from '@/lib/services/plan-service';
 import { useAuth } from '@/contexts/auth-context';
 import { getMembers } from '@/lib/services/member-service';
+import { EditPaymentDialog } from '@/components/payments/edit-payment-dialog';
 
-type MemberWithPayment = Member & { paymentStatus: string; lastPayment?: Payment };
+export type MemberWithPaymentInfo = Member & {
+  paymentStatus: string;
+  lastPayment?: Payment;
+  planName: string;
+};
 
 export default function PaymentsPage() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -31,6 +37,9 @@ export default function PaymentsPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<MemberWithPaymentInfo | null>(null);
+
   const { toast } = useToast();
   const { userRole } = useAuth();
 
@@ -61,13 +70,31 @@ export default function PaymentsPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleUpdatePayment = async (updatedPayment: Payment) => {
+  const handleEditPayment = (member: MemberWithPaymentInfo) => {
+    setEditingMember(member);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleUpdatePaymentAndPlan = async (
+    memberId: string,
+    paymentData: Partial<Payment>
+  ) => {
     try {
-      await updatePayment(updatedPayment.id, updatedPayment);
+      if (paymentData.id) {
+        // If a payment exists, update it
+        await updatePayment(paymentData.id, paymentData);
+      } else {
+        // If no payment exists, create one
+        await addPayment({
+            memberId: memberId,
+            name: members.find(m => m.id === memberId)?.name || 'N/A',
+            ...paymentData
+        });
+      }
       await fetchData(); // Refetch data
       toast({
         title: 'Payment Updated',
-        description: 'Payment status has been successfully updated.',
+        description: 'Payment details have been successfully updated.',
       });
     } catch (error) {
        toast({
@@ -77,6 +104,7 @@ export default function PaymentsPage() {
       });
     }
   };
+
 
   const handleAddPlan = async (newPlanData: Omit<Plan, 'id'>) => {
     try {
@@ -129,15 +157,18 @@ export default function PaymentsPage() {
     }
   };
 
-  const membersWithPayments = members.map(member => {
+  const membersWithPayments = members.map((member): MemberWithPaymentInfo => {
     const memberPayments = payments
       .filter(p => p.memberId === member.id)
       .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
     const lastPayment = memberPayments[0];
+    const plan = plans.find(p => p.id === lastPayment?.planId);
+    
     return {
       ...member,
       paymentStatus: lastPayment?.status || 'N/A',
       lastPayment: lastPayment,
+      planName: plan?.name || 'N/A',
     };
   }).filter(member => {
     if (filter === 'all') return true;
@@ -146,55 +177,66 @@ export default function PaymentsPage() {
 
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-headline text-3xl font-bold tracking-tight">
-        Payments & Plans
-      </h1>
+    <>
+      <div className="space-y-6">
+        <h1 className="font-headline text-3xl font-bold tracking-tight">
+          Payments & Plans
+        </h1>
 
-      {userRole === 'owner' && (
-        <PlanManagement 
-            plans={plans}
-            onAdd={handleAddPlan}
-            onEdit={handleUpdatePlan}
-            onDelete={handleDeletePlan}
-        />
-      )}
+        {userRole === 'owner' && (
+          <PlanManagement 
+              plans={plans}
+              onAdd={handleAddPlan}
+              onEdit={handleUpdatePlan}
+              onDelete={handleDeletePlan}
+          />
+        )}
 
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 className="font-headline text-2xl font-bold tracking-tight">
-          Member Payments
-        </h2>
-        <div className="flex items-center gap-2">
-          <ListFilter className="h-4 w-4 text-muted-foreground" />
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-              <SelectItem value="N/A">No Payments</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <h2 className="font-headline text-2xl font-bold tracking-tight">
+            Member Payments
+          </h2>
+          <div className="flex items-center gap-2">
+            <ListFilter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+                <SelectItem value="N/A">No Payments</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+        
+        {loading ? (
+           <div className="space-y-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+          </div>
+        ) : (
+          <MemberPaymentsTable
+            membersWithPayments={membersWithPayments}
+            onEditPayment={handleEditPayment}
+          />
+        )}
       </div>
-      
-      {loading ? (
-         <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-        </div>
-      ) : (
-        <MemberPaymentsTable
-          membersWithPayments={membersWithPayments}
-          plans={plans}
-          onUpdatePayment={handleUpdatePayment}
+
+      {editingMember && (
+        <EditPaymentDialog
+            isOpen={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            member={editingMember}
+            plans={plans}
+            onSave={handleUpdatePaymentAndPlan}
         />
       )}
-    </div>
+    </>
   );
 }

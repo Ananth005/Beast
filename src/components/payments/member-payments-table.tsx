@@ -18,35 +18,23 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
-import { Payment, Member, Plan } from '@/lib/types';
+import { MoreHorizontal, Edit, Clock } from 'lucide-react';
+import { Payment, Member } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-type MemberWithPayment = Member & { paymentStatus: string; lastPayment?: Payment };
+import { MemberWithPaymentInfo } from '@/app/(main)/payments/page';
 
 interface MemberPaymentsTableProps {
-  membersWithPayments: MemberWithPayment[];
-  plans: Plan[];
-  onUpdatePayment: (payment: Payment) => void;
+  membersWithPayments: MemberWithPaymentInfo[];
+  onEditPayment: (member: MemberWithPaymentInfo) => void;
 }
 
 export function MemberPaymentsTable({
   membersWithPayments,
-  plans,
-  onUpdatePayment,
+  onEditPayment,
 }: MemberPaymentsTableProps) {
   
-  const handleMarkAsPaid = (payment: Payment | undefined) => {
-    if (!payment) return;
-    onUpdatePayment({
-      ...payment,
-      status: 'paid',
-      paidDate: new Date().toISOString(),
-    });
-  };
-
   const handleSendReminder = (member: Member, payment: Payment | undefined) => {
     if (!payment) {
         alert("This member doesn't have a payment record to send a reminder for.");
@@ -59,11 +47,6 @@ export function MemberPaymentsTable({
     } else {
       alert('Member mobile number not found.');
     }
-  };
-
-  const getPlanName = (planId?: string) => {
-    if (!planId) return 'N/A';
-    return plans.find(p => p.id === planId)?.name || 'Unknown Plan';
   };
 
   return (
@@ -116,7 +99,7 @@ export function MemberPaymentsTable({
                   </Badge>
                 </TableCell>
                  <TableCell className="hidden md:table-cell">
-                    {getPlanName(member.lastPayment?.planId)}
+                    {member.planName}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {member.lastPayment
@@ -137,24 +120,17 @@ export function MemberPaymentsTable({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {member.lastPayment && member.paymentStatus !== 'paid' && (
-                          <DropdownMenuItem
-                            onSelect={() => handleMarkAsPaid(member.lastPayment)}
+                        <DropdownMenuItem
+                            onSelect={() => onEditPayment(member)}
                           >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Mark as Paid
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Payment/Plan
                           </DropdownMenuItem>
-                        )}
                         {member.lastPayment && (
                           <DropdownMenuItem onSelect={() => handleSendReminder(member, member.lastPayment)}>
                             <Clock className="mr-2 h-4 w-4" />
                             Send Reminder
                           </DropdownMenuItem>
-                        )}
-                         {(!member.lastPayment || member.paymentStatus === 'paid') && (
-                            <DropdownMenuItem disabled>
-                                No actions available
-                            </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
