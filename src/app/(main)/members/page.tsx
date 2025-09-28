@@ -35,6 +35,7 @@ export default function MembersPage() {
       setPayments(fetchedPayments);
       setPlans(fetchedPlans);
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Error fetching data',
         description: 'Could not load data. Please try again later.',
@@ -47,7 +48,7 @@ export default function MembersPage() {
 
   useEffect(() => {
     fetchAllData();
-  }, [toast]);
+  }, []);
 
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,11 +62,11 @@ export default function MembersPage() {
         title: 'Member Added',
         description: `${newMemberData.name} has been successfully added.`,
       });
-      fetchAllData(); // Refresh all data
+      await fetchAllData(); // Refresh all data
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to add member.',
+        description: error instanceof Error ? error.message : 'Failed to add member.',
         variant: 'destructive',
       });
     }
@@ -74,12 +75,11 @@ export default function MembersPage() {
   const handleUpdateMember = async (updatedMember: Member) => {
     try {
       await updateMemberService(updatedMember.id, updatedMember);
-      setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
       toast({
         title: 'Member Updated',
         description: 'Member details have been successfully updated.',
       });
-      fetchAllData(); // Refresh all data
+      await fetchAllData(); // Refresh all data
     } catch (error) {
       toast({
         title: 'Error',
@@ -90,16 +90,14 @@ export default function MembersPage() {
   };
 
   const handleDeleteMember = async (memberId: string) => {
-    const originalMembers = [...members];
-    setMembers(members.filter((member) => member.id !== memberId));
     try {
       await deleteMemberService(memberId);
       toast({
         title: 'Member Deleted',
         description: 'The member has been successfully deleted.',
       });
+      await fetchAllData(); // Refresh all data
     } catch (error) {
-      setMembers(originalMembers);
       toast({
         title: 'Error',
         description: 'Failed to delete member.',

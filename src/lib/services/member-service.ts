@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, setDoc, query, where, getDoc } from 'firebase/firestore';
 import { Member } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -48,35 +48,36 @@ export async function addMember(memberData: Omit<Member, 'id' | 'lastVisit' | 'a
 export async function updateMember(memberId: string, memberData: Partial<Member>): Promise<void> {
   const memberDoc = doc(db, 'members', memberId);
   await updateDoc(memberDoc, {
-      name: memberData.name,
-      email: memberData.email,
-      mobileNumber: memberData.mobileNumber,
-      membershipStatus: memberData.membershipStatus,
-      joinDate: memberData.joinDate,
+      ...memberData
   });
 
   // Also update the display name in the core 'users' table if it exists
   const userDoc = doc(db, 'users', memberId);
-  const userSnap = await getDoc(userDoc);
-  if (userSnap.exists()) {
-      await updateDoc(userDoc, {
-          displayName: memberData.name,
-          email: memberData.email
-      });
+  try {
+    const userSnap = await getDoc(userDoc);
+    if (userSnap.exists()) {
+        await updateDoc(userDoc, {
+            displayName: memberData.name,
+            email: memberData.email
+        });
+    }
+  } catch (e) {
+      console.log('User record in `users` collection not found or could not be updated for member:', memberId);
   }
 }
 
 export async function deleteMember(memberId: string): Promise<void> {
   // This will delete the member from the 'members' collection.
-  // In a full app, you might want to also delete the user from Firebase Auth,
-  // which requires admin privileges and is usually done via a Cloud Function.
   const memberDoc = doc(db, 'members', memberId);
   await deleteDoc(memberDoc);
 
   // For this app, we'll also remove them from the 'users' collection to disable login.
-  const userDoc = doc(db, 'users', memberId);
-  const userSnap = await getDoc(userDoc);
-  if (userSnap.exists()) {
-      await deleteDoc(userDoc);
+  // This part might fail if the user was manually added and doesn't have a 'users' record,
+  // so we wrap it in a try-catch.
+  try {
+    const userDoc = doc(db, 'users', memberId);
+    await deleteDoc(userDoc);
+  } catch (error) {
+    console.log(`Could not delete user from 'users' collection for memberId: ${memberId}. They might have been a manually added member.`)
   }
 }
