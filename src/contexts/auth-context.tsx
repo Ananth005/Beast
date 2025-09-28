@@ -35,6 +35,40 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const syncUserToMembers = async (user: User | MockUser, role: UserRole) => {
+    const memberDocRef = doc(db, 'members', user.uid);
+    const memberDoc = await getDoc(memberDocRef);
+
+    if (!memberDoc.exists()) {
+        const newMemberData = {
+            id: user.uid,
+            name: user.displayName || 'New Member',
+            email: user.email || '',
+            mobileNumber: '',
+            joinDate: new Date().toISOString(),
+            lastVisit: new Date().toISOString(),
+            membershipStatus: 'active',
+            avatarUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
+        };
+        await setDoc(memberDocRef, newMemberData);
+    } else {
+        await setDoc(memberDocRef, { lastVisit: new Date().toISOString() }, { merge: true });
+    }
+
+    // Also ensure the user record exists in the 'users' collection for role management
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+         await setDoc(userDocRef, {
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            role: role,
+        });
+    }
+}
+
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | MockUser | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
@@ -52,9 +86,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (userDoc.exists()) {
           currentRole = userDoc.data().role;
-          setUserRole(currentRole);
-           // Update last visit time
-           await setDoc(userDocRef, { lastVisit: new Date().toISOString() }, { merge: true });
         } else {
           // New user from Google Sign-In, create their record in 'users' collection
           await setDoc(userDocRef, {
@@ -62,14 +93,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
             role: 'user',
-            joinDate: new Date().toISOString(),
-            lastVisit: new Date().toISOString(),
-            membershipStatus: 'active',
           });
-          setUserRole('user');
         }
         
+        setUserRole(currentRole);
         setUser(firebaseUser);
+        await syncUserToMembers(firebaseUser, currentRole);
+        
         setLoading(false);
 
       } else {
@@ -92,23 +122,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       photoURL: `https://picsum.photos/seed/${role}/100/100`,
     };
     
-    // Ensure mock user exists in users collection for consistency
-    const userDocRef = doc(db, 'users', mockUid);
-    const userDoc = await getDoc(userDocRef);
-    if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-            displayName: mockUser.displayName,
-            email: mockUser.email,
-            photoURL: mockUser.photoURL,
-            role: role,
-            joinDate: new Date().toISOString(),
-            lastVisit: new Date().toISOString(),
-            membershipStatus: 'active',
-        });
-    }
-    
     setUser(mockUser);
     setUserRole(role);
+    await syncUserToMembers(mockUser, role);
+    
     setLoading(false);
     router.push('/dashboard');
   };
@@ -118,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle the rest
+      // The onAuthStateChanged listener will handle the rest, including sync
       router.push('/dashboard');
     } catch (error) {
       console.error('Google Sign-In Error:', error);
@@ -128,13 +145,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateUser = async (newUserData: Partial<MockUser>) => {
     if (user) {
-        setUser(prevUser => ({
-            ...prevUser!,
-            ...newUserData,
-        }));
-        // also update in firestore
+        const updatedUser = { ...user, ...newUserData };
+        setUser(updatedUser);
+        
+        // Update user collection
         const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, newUserData, { merge: true });
+        await setDoc(userDocRef, { 
+            displayName: updatedUser.displayName, 
+            photoURL: updatedUser.photoURL 
+        }, { merge: true });
+
+        // Update members collection
+        const memberDocRef = doc(db, 'members', user.uid);
+         await setDoc(memberDocRef, { 
+            name: updatedUser.displayName, 
+            avatarUrl: updatedUser.photoURL 
+        }, { merge: true });
     }
   };
 
