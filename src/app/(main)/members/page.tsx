@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getPayments } from '@/lib/services/payment-service';
 import { getPlans } from '@/lib/services/plan-service';
+import { addPayment } from '@/lib/services/payment-service';
+import { addDays, formatISO } from 'date-fns';
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -55,12 +56,28 @@ export default function MembersPage() {
     (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>) => {
+  const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'> & { planId: string, paymentStatus: 'paid' | 'pending' }) => {
     try {
-      await addMemberService(newMemberData);
+      const newMember = await addMemberService(newMemberData);
+      const selectedPlan = plans.find(p => p.id === newMemberData.planId);
+      
+      if (selectedPlan) {
+        const dueDate = addDays(new Date(), selectedPlan.duration);
+        const newPayment: Omit<Payment, 'id'> = {
+            memberId: newMember.id,
+            name: newMember.name,
+            amount: selectedPlan.price,
+            dueDate: formatISO(dueDate),
+            status: newMemberData.paymentStatus,
+            planId: newMemberData.planId,
+            paidDate: newMemberData.paymentStatus === 'paid' ? new Date().toISOString() : undefined
+        };
+        await addPayment(newPayment);
+      }
+
       toast({
         title: 'Member Added',
-        description: `${newMemberData.name} has been successfully added.`,
+        description: `${newMember.name} has been successfully added.`,
       });
       await fetchAllData(); // Refresh all data
     } catch (error) {
@@ -152,6 +169,7 @@ export default function MembersPage() {
         isOpen={isAddMemberOpen}
         onOpenChange={setIsAddMemberOpen}
         onAddMember={handleAddMember}
+        plans={plans}
       />
     </div>
   );

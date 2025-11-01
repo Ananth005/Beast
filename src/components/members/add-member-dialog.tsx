@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -18,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Member } from '@/lib/types';
+import { Member, Plan } from '@/lib/types';
 import {
     Form,
     FormControl,
@@ -30,6 +29,7 @@ import {
     FormLabel,
     FormMessage,
   } from "@/components/ui/form"
+import { useEffect } from 'react';
 
 const memberSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -37,6 +37,8 @@ const memberSchema = z.object({
   mobileNumber: z.string().min(10, { message: 'Mobile number must be at least 10 digits.' }),
   joinDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
   membershipStatus: z.enum(['active', 'inactive', 'frozen']),
+  planId: z.string().min(1, { message: 'Please select a plan.'}),
+  paymentStatus: z.enum(['paid', 'pending']),
 });
 
 type MemberFormData = z.infer<typeof memberSchema>;
@@ -44,10 +46,11 @@ type MemberFormData = z.infer<typeof memberSchema>;
 interface AddMemberDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddMember: (member: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>) => void;
+  onAddMember: (member: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'> & { planId: string, paymentStatus: 'paid' | 'pending' }) => void;
+  plans: Plan[];
 }
 
-export function AddMemberDialog({ isOpen, onOpenChange, onAddMember }: AddMemberDialogProps) {
+export function AddMemberDialog({ isOpen, onOpenChange, onAddMember, plans }: AddMemberDialogProps) {
   const form = useForm<MemberFormData>({
     resolver: zodResolver(memberSchema),
     defaultValues: {
@@ -56,8 +59,24 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember }: AddMember
       mobileNumber: '',
       joinDate: new Date().toISOString().split('T')[0],
       membershipStatus: 'active',
+      planId: '',
+      paymentStatus: 'pending'
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: '',
+        email: '',
+        mobileNumber: '',
+        joinDate: new Date().toISOString().split('T')[0],
+        membershipStatus: 'active',
+        planId: plans[0]?.id || '',
+        paymentStatus: 'pending'
+      });
+    }
+  }, [isOpen, form, plans]);
 
   const onSubmit = (data: MemberFormData) => {
     onAddMember(data);
@@ -71,7 +90,7 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember }: AddMember
         <DialogHeader>
           <DialogTitle>Add New Member</DialogTitle>
           <DialogDescription>
-            Enter the details of the new member.
+            Enter the details of the new member, their plan, and initial payment status.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -144,6 +163,51 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember }: AddMember
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="inactive">Inactive</SelectItem>
                       <SelectItem value="frozen">Frozen</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="planId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Membership Plan</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a plan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {plans.map(plan => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                              {plan.name}
+                          </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="paymentStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Initial Payment Status</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
