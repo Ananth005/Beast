@@ -15,7 +15,7 @@ export function OwnerDashboard() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-headline text-3xl font-bold tracking-tight">
-        Business Dashboard
+        Beast Dashboard
       </h1>
       <AnnouncementBanner />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -44,7 +44,7 @@ export function OwnerDashboard() {
           description="Compared to last week"
         />
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
             <AttendanceTrendsChart />
             <CreateAnnouncement />
@@ -75,7 +75,7 @@ export function OwnerDashboard() {
                 </ul>
             </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   );
 }
