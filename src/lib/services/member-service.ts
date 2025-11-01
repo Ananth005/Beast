@@ -16,7 +16,7 @@ export async function getMembers(): Promise<Member[]> {
     return {
       id: doc.id,
       name: data.name || 'No Name',
-      email: data.email || 'No Email',
+      email: data.email || '',
       mobileNumber: data.mobileNumber || '',
       joinDate: data.joinDate || new Date().toISOString(),
       lastVisit: data.lastVisit || new Date().toISOString(),
@@ -28,10 +28,12 @@ export async function getMembers(): Promise<Member[]> {
 
 export async function addMember(memberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>): Promise<Member> {
     // This function adds members who do not have a login (e.g., manually by an owner).
-    const q = query(membersCollection, where("email", "==", memberData.email));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-        throw new Error("A member with this email already exists.");
+    if (memberData.email) {
+        const q = query(membersCollection, where("email", "==", memberData.email));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            throw new Error("A member with this email already exists.");
+        }
     }
     
     const newId = uuidv4();
