@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -33,7 +34,7 @@ import { useEffect } from 'react';
 
 const memberSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Invalid email address.' }),
+  email: z.union([z.string().email({ message: 'Invalid email address.' }), z.literal("")]),
   mobileNumber: z.string().min(10, { message: 'Mobile number must be at least 10 digits.' }),
   joinDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
   membershipStatus: z.enum(['active', 'inactive', 'frozen']),
@@ -113,7 +114,7 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember, plans }: Ad
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email (Optional)</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="john.doe@example.com" {...field} />
                   </FormControl>
