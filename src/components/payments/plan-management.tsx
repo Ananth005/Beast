@@ -58,7 +58,7 @@ export function PlanManagement({ plans, onAdd, onEdit, onDelete }: PlanManagemen
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Plan Name</TableHead>
-                                    <TableHead>Duration (Days)</TableHead>
+                                    <TableHead>Duration (Months)</TableHead>
                                     <TableHead>Price</TableHead>
                                     <TableHead className='text-right'>Actions</TableHead>
                                 </TableRow>
