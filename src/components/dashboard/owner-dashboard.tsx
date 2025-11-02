@@ -1,13 +1,13 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { StatCard } from './stat-card';
 import { Users, TrendingUp, IndianRupee, UserCheck, UserPlus, Calendar as CalendarIcon } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getMembers } from '@/lib/services/member-service';
 import { getPayments } from '@/lib/services/payment-service';
 import { Member, Payment } from '@/lib/types';
-import { format, startOfMonth, endOfMonth, isWithinInterval, getMonth, getYear, parseISO, startOfYear, endOfYear, eachMonthOfInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
@@ -49,8 +49,10 @@ export function OwnerDashboard() {
   // Calculate stats
   const totalRevenueThisMonth = paymentsInMonth.reduce((acc, p) => acc + p.amount, 0);
   const feesBalanceThisMonth = pendingPaymentsInMonth.reduce((acc, p) => acc + p.amount, 0);
-  const totalMaleMembers = members.filter(m => m.gender === 'male').length;
-  const totalFemaleMembers = members.filter(m => m.gender === 'female').length;
+  
+  const activeMembers = members.filter(m => m.membershipStatus === 'active');
+  const totalMaleMembers = activeMembers.filter(m => m.gender === 'male').length;
+  const totalFemaleMembers = activeMembers.filter(m => m.gender === 'female').length;
 
   if (loading) {
       return (
@@ -61,10 +63,6 @@ export function OwnerDashboard() {
                   <Skeleton className="h-32" />
                   <Skeleton className="h-32" />
                   <Skeleton className="h-32" />
-              </div>
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-                  <Skeleton className="h-80 lg:col-span-3" />
-                  <Skeleton className="h-80 lg:col-span-2" />
               </div>
           </div>
       )
@@ -88,10 +86,7 @@ export function OwnerDashboard() {
                     mode="single"
                     selected={selectedDate}
                     onSelect={(day) => day && setSelectedDate(day)}
-                    month={selectedDate}
-                    onMonthChange={setSelectedDate}
-                    disabled={(date) => date > new Date() || date < new Date('2000-01-01')}
-                    captionLayout="dropdown-buttons" fromYear={2015} toYear={new Date().getFullYear()}
+                    initialFocus
                 />
             </PopoverContent>
         </Popover>
@@ -99,8 +94,8 @@ export function OwnerDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Members"
-          value={members.length.toString()}
+          title="Active Members"
+          value={activeMembers.length.toString()}
           icon={Users}
           description={`${totalMaleMembers} Male, ${totalFemaleMembers} Female`}
         />
