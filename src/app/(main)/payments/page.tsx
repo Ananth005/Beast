@@ -24,11 +24,13 @@ import { getPlans, addPlan, updatePlan, deletePlan } from '@/lib/services/plan-s
 import { useAuth } from '@/contexts/auth-context';
 import { getMembers } from '@/lib/services/member-service';
 import { EditPaymentDialog } from '@/components/payments/edit-payment-dialog';
+import { differenceInMonths, isBefore } from 'date-fns';
 
 export type MemberWithPaymentInfo = Member & {
   paymentStatus: string;
   lastPayment?: Payment;
   planName: string;
+  balance: number;
 };
 
 export default function PaymentsPage() {
@@ -161,14 +163,33 @@ export default function PaymentsPage() {
     const memberPayments = payments
       .filter(p => p.memberId === member.id)
       .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+    
     const lastPayment = memberPayments[0];
     const plan = plans.find(p => p.id === lastPayment?.planId);
     
+    let balance = 0;
+    const paymentStatus = lastPayment?.status || 'N/A';
+
+    if (plan && lastPayment && (paymentStatus === 'pending' || paymentStatus === 'overdue')) {
+        const dueDate = new Date(lastPayment.dueDate);
+        const today = new Date();
+        
+        if (isBefore(dueDate, today)) {
+             const monthsDiff = differenceInMonths(today, dueDate);
+             const cyclesMissed = Math.floor(monthsDiff / plan.duration) + 1;
+             balance = cyclesMissed * plan.price;
+        } else {
+            balance = plan.price;
+        }
+    }
+
+
     return {
       ...member,
-      paymentStatus: lastPayment?.status || 'N/A',
+      paymentStatus,
       lastPayment: lastPayment,
       planName: plan?.name || 'N/A',
+      balance,
     };
   }).filter(member => {
     if (filter === 'all') return true;

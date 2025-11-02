@@ -66,12 +66,7 @@ export function MemberPaymentsTable({
         </TableHeader>
         <TableBody>
           {membersWithPayments.length > 0 ? (
-            membersWithPayments.map((member) => {
-              const balance = (member.paymentStatus === 'pending' || member.paymentStatus === 'overdue') && member.lastPayment
-                ? member.lastPayment.amount 
-                : 0;
-
-              return (
+            membersWithPayments.map((member) => (
               <TableRow key={member.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -111,8 +106,8 @@ export function MemberPaymentsTable({
                     ? format(parseISO(member.lastPayment.dueDate), 'MMMM d, yyyy')
                     : 'N/A'}
                 </TableCell>
-                <TableCell className={cn("hidden lg:table-cell font-medium", balance > 0 && "text-destructive")}>
-                  ₹{balance.toFixed(2)}
+                <TableCell className={cn("hidden lg:table-cell font-medium", member.balance > 0 && "text-destructive")}>
+                  ₹{member.balance.toFixed(2)}
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end">
@@ -142,7 +137,7 @@ export function MemberPaymentsTable({
                    </div>
                 </TableCell>
               </TableRow>
-            )})
+            ))
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
