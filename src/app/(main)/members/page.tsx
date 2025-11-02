@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Search, Loader2 } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { MembersTable } from '@/components/members/members-table';
 import { Member, Payment, Plan } from '@/lib/types';
 import { AddMemberDialog } from '@/components/members/add-member-dialog';
@@ -15,6 +15,7 @@ import { getPayments } from '@/lib/services/payment-service';
 import { getPlans } from '@/lib/services/plan-service';
 import { addPayment } from '@/lib/services/payment-service';
 import { addMonths, formatISO } from 'date-fns';
+import { Loader } from '@/components/ui/loader';
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);

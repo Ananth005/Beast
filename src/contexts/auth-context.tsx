@@ -15,6 +15,7 @@ import type { UserRole, Member, LeaderboardRecord } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { LeaderboardCategory } from '@/app/(main)/leaderboard/page';
+import { Loader } from '@/components/ui/loader';
 
 // Define a mock user type that can be used for bypassing login
 type AppUser = {
@@ -46,6 +47,7 @@ const syncUserToMembers = async (user: AppUser, role: UserRole) => {
             name: user.displayName || 'New Member',
             email: user.email || '',
             mobileNumber: '',
+            gender: 'other',
             joinDate: new Date().toISOString(),
             lastVisit: new Date().toISOString(),
             membershipStatus: 'active',
@@ -284,11 +286,7 @@ export const AuthGuard = ({ children, roles }: { children: React.ReactNode, role
   if (loading) {
     return (
         <div className="flex justify-center items-center h-screen">
-          <div className="space-y-4 w-full max-w-md p-8">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-80" />
-          </div>
+          <Loader />
         </div>
     );
   }

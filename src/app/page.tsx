@@ -7,8 +7,9 @@ import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
-import { Loader2, User, Shield, Chrome } from 'lucide-react';
+import { User, Shield, Chrome } from 'lucide-react';
 import  DarkVeil  from '@/components/DarkVeil';
+import { Loader } from '@/components/ui/loader';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function LoginPage() {
   if (loading || user) {
     return (
         <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-background">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <Loader />
         </div>
     );
   }
@@ -31,7 +32,7 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background">
       <div className="absolute inset-0 z-0">
-        <DarkVeil />
+        <DarkVeil speed={3} hueShift={240}/>
         {/* <Image
           src="https://picsum.photos/seed/beastmode/1920/1080"
           alt="Background gym"

@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { ListFilter, Loader2, Search } from 'lucide-react';
+import { ListFilter, Search } from 'lucide-react';
 import {
   getPayments,
   updatePayment,

@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { seedDatabase } from '@/lib/services/seed-service';
-import { Loader2 } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 import { addMember } from '@/lib/services/member-service';
+import { Loader } from '@/components/ui/loader';
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -108,7 +108,7 @@ export default function SettingsPage() {
             <Button onClick={handleSeed} disabled={isSeeding}>
                 {isSeeding ? (
                     <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader className="mr-2 h-4 w-4" />
                         Seeding...
                     </>
                 ) : (
@@ -135,7 +135,7 @@ export default function SettingsPage() {
           <Button onClick={handleImportContacts} disabled={isImporting || !contactsJson}>
             {isImporting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader className="mr-2 h-4 w-4" />
                 Importing...
               </>
             ) : (
