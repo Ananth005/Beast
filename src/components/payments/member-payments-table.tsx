@@ -58,7 +58,7 @@ export function MemberPaymentsTable({
             <TableHead>Payment Status</TableHead>
             <TableHead className="hidden md:table-cell">Plan</TableHead>
             <TableHead className="hidden md:table-cell">Due Date</TableHead>
-            <TableHead className="hidden lg:table-cell">Amount</TableHead>
+            <TableHead className="hidden lg:table-cell">Balance</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -66,7 +66,12 @@ export function MemberPaymentsTable({
         </TableHeader>
         <TableBody>
           {membersWithPayments.length > 0 ? (
-            membersWithPayments.map((member) => (
+            membersWithPayments.map((member) => {
+              const balance = (member.paymentStatus === 'pending' || member.paymentStatus === 'overdue') && member.lastPayment
+                ? member.lastPayment.amount 
+                : 0;
+
+              return (
               <TableRow key={member.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -106,8 +111,8 @@ export function MemberPaymentsTable({
                     ? format(parseISO(member.lastPayment.dueDate), 'MMMM d, yyyy')
                     : 'N/A'}
                 </TableCell>
-                <TableCell className="hidden lg:table-cell">
-                  {member.lastPayment ? `₹${member.lastPayment.amount.toFixed(2)}` : 'N/A'}
+                <TableCell className={cn("hidden lg:table-cell font-medium", balance > 0 && "text-destructive")}>
+                  ₹{balance.toFixed(2)}
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end">
@@ -137,7 +142,7 @@ export function MemberPaymentsTable({
                    </div>
                 </TableCell>
               </TableRow>
-            ))
+            )})
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
