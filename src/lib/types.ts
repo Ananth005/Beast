@@ -82,7 +82,7 @@ export type Plan = {
   id: string;
   name: string;
   price: number;
-  duration: number; // in days
+  duration: number; // in months
 };
 
 export type SignUpData = {

@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { MemberWithPaymentInfo } from '@/app/(main)/payments/page';
 import { Plan, Payment } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 
 const paymentSchema = z.object({
   planId: z.string().min(1, 'Please select a plan.'),
@@ -62,8 +62,7 @@ export function EditPaymentDialog({ isOpen, onOpenChange, onSave, member, plans 
         const plan = plans.find(p => p.id === selectedPlanId);
         if (plan) {
             form.setValue('amount', plan.price);
-            const newDueDate = new Date();
-            newDueDate.setDate(newDueDate.getDate() + plan.duration);
+            const newDueDate = addMonths(new Date(), plan.duration);
             form.setValue('dueDate', format(newDueDate, 'yyyy-MM-dd'));
         }
     }
@@ -113,7 +112,7 @@ export function EditPaymentDialog({ isOpen, onOpenChange, onSave, member, plans 
                     <SelectContent>
                         {plans.map(plan => (
                             <SelectItem key={plan.id} value={plan.id}>
-                                {plan.name} ({plan.duration} days)
+                                {plan.name} ({plan.duration} month{plan.duration > 1 ? 's' : ''})
                             </SelectItem>
                         ))}
                     </SelectContent>

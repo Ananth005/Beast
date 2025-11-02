@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getPayments } from '@/lib/services/payment-service';
 import { getPlans } from '@/lib/services/plan-service';
 import { addPayment } from '@/lib/services/payment-service';
-import { addDays, formatISO } from 'date-fns';
+import { addMonths, formatISO } from 'date-fns';
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -62,7 +62,7 @@ export default function MembersPage() {
       const selectedPlan = plans.find(p => p.id === newMemberData.planId);
       
       if (selectedPlan) {
-        const dueDate = addDays(new Date(), selectedPlan.duration);
+        const dueDate = addMonths(new Date(), selectedPlan.duration);
         const newPayment: Omit<Payment, 'id'> = {
             memberId: newMember.id,
             name: newMember.name,

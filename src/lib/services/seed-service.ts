@@ -19,9 +19,9 @@ import { LeaderboardCategory } from '@/app/(main)/leaderboard/page';
 import { Plan } from '../types';
 
 const plans: Plan[] = [
-    { id: 'plan1', name: 'Monthly', price: 1000, duration: 30 },
-    { id: 'plan2', name: 'Quarterly', price: 2500, duration: 90 },
-    { id: 'plan3', name: 'Yearly', price: 9000, duration: 365 },
+    { id: 'plan1', name: 'Monthly', price: 1000, duration: 1 },
+    { id: 'plan2', name: 'Quarterly', price: 2500, duration: 3 },
+    { id: 'plan3', name: 'Yearly', price: 9000, duration: 12 },
 ];
 
 export async function seedDatabase() {

@@ -16,11 +16,12 @@ import {
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plan } from '@/lib/types';
 
 const planSchema = z.object({
   name: z.string().min(2, 'Plan name must be at least 2 characters.'),
-  duration: z.coerce.number().int().positive('Duration must be a positive number of days.'),
+  duration: z.coerce.number().int().min(1).max(12, 'Duration must be between 1 and 12 months.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
 });
 
@@ -48,7 +49,7 @@ export function AddEditPlanDialog({ isOpen, onOpenChange, onSave, plan }: AddEdi
     } else {
       form.reset({
         name: '',
-        duration: 30,
+        duration: 1,
         price: 0,
       });
     }
@@ -87,15 +88,26 @@ export function AddEditPlanDialog({ isOpen, onOpenChange, onSave, plan }: AddEdi
                 </FormItem>
               )}
             />
-            <FormField
+             <FormField
               control={form.control}
               name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Duration (in days)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
+                  <FormLabel>Duration (in months)</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                        <SelectItem key={month} value={String(month)}>
+                          {month} Month{month > 1 ? 's' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
