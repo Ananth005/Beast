@@ -18,28 +18,17 @@ import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MemberWithPaymentInfo } from '@/app/(main)/payments/page';
-import { DataTablePagination } from '../data-table-pagination';
 
 interface MemberPaymentsTableProps {
   membersWithPayments: MemberWithPaymentInfo[];
   reminderMessageTemplate: string;
   onEditPayment: (member: MemberWithPaymentInfo) => void;
-  pageIndex: number;
-  pageSize: number;
-  setPageIndex: (index: number) => void;
-  setPageSize: (size: number) => void;
-  totalRows: number;
 }
 
 export function MemberPaymentsTable({
   membersWithPayments,
   reminderMessageTemplate,
   onEditPayment,
-  pageIndex,
-  pageSize,
-  setPageIndex,
-  setPageSize,
-  totalRows,
 }: MemberPaymentsTableProps) {
   
   const handleSendReminder = (e: React.MouseEvent, member: Member, payment: Payment | undefined) => {
@@ -60,8 +49,6 @@ export function MemberPaymentsTable({
       alert('Member mobile number not found.');
     }
   };
-  
-  const pageCount = Math.ceil(totalRows / pageSize);
 
   return (
     <div className="space-y-4">
@@ -90,7 +77,7 @@ export function MemberPaymentsTable({
                         <div className="grid gap-0.5">
                             <p className="font-medium">{member.name}</p>
                             <p className="text-xs text-muted-foreground hidden md:block">
-                            {member.email}
+                              {member.email}
                             </p>
                         </div>
                     </div>
@@ -141,21 +128,13 @@ export function MemberPaymentsTable({
             ) : (
                 <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
-                    No members found for the selected filter.
+                    No members found.
                 </TableCell>
                 </TableRow>
             )}
             </TableBody>
         </Table>
         </div>
-        <DataTablePagination 
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            pageCount={pageCount}
-            totalRows={totalRows}
-            setPageIndex={setPageIndex}
-            setPageSize={setPageSize}
-        />
     </div>
   );
 }

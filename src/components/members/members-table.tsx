@@ -37,7 +37,6 @@ import { cn } from '@/lib/utils';
 import { EditMemberDialog } from './edit-member-dialog';
 import { ViewMemberDialog } from './view-member-dialog';
 import { useRouter } from 'next/navigation';
-import { DataTablePagination } from '../data-table-pagination';
 
 interface MembersTableProps {
   members: Member[];
@@ -45,11 +44,6 @@ interface MembersTableProps {
   plans: Plan[];
   onEdit: (member: Member) => void;
   onDelete: (memberId: string) => void;
-  pageIndex: number;
-  pageSize: number;
-  setPageIndex: (index: number) => void;
-  setPageSize: (size: number) => void;
-  totalRows: number;
 }
 
 export function MembersTable({ 
@@ -58,11 +52,6 @@ export function MembersTable({
     plans, 
     onEdit, 
     onDelete,
-    pageIndex,
-    pageSize,
-    setPageIndex,
-    setPageSize,
-    totalRows
 }: MembersTableProps) {
   const router = useRouter();
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
@@ -106,8 +95,6 @@ export function MembersTable({
       nextDueDate: latestPayment.dueDate,
     };
   };
-
-  const pageCount = Math.ceil(totalRows / pageSize);
 
   return (
     <>
@@ -203,14 +190,6 @@ export function MembersTable({
             </TableBody>
           </Table>
         </div>
-        <DataTablePagination 
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            pageCount={pageCount}
-            totalRows={totalRows}
-            setPageIndex={setPageIndex}
-            setPageSize={setPageSize}
-        />
       </div>
 
       {viewingMember && (

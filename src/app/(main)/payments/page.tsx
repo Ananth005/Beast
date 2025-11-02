@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ListFilter, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ListFilter, Loader2, Search } from 'lucide-react';
 import {
   getPayments,
   updatePayment,
@@ -40,11 +41,9 @@ export default function PaymentsPage() {
   const [reminderMessage, setReminderMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberWithPaymentInfo | null>(null);
-
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
 
   const { toast } = useToast();
   const { userRole } = useAuth();
@@ -113,52 +112,60 @@ export default function PaymentsPage() {
     }
   };
 
-  const membersWithPayments = useMemo(() => members.map((member): MemberWithPaymentInfo => {
-    const memberPayments = payments
-      .filter(p => p.memberId === member.id)
-      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-    
-    const lastPayment = memberPayments[0];
-    const plan = plans.find(p => p.id === lastPayment?.planId);
-    
-    let balance = 0;
-    let paymentStatus = lastPayment?.status || 'N/A';
+  const membersWithPayments = useMemo(() => {
+    const allMembersWithPaymentInfo = members.map((member): MemberWithPaymentInfo => {
+      const memberPayments = payments
+        .filter(p => p.memberId === member.id)
+        .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+      
+      const lastPayment = memberPayments[0];
+      const plan = plans.find(p => p.id === lastPayment?.planId);
+      
+      let balance = 0;
+      let paymentStatus = lastPayment?.status || 'N/A';
 
-    if (lastPayment && isPast(new Date(lastPayment.dueDate)) && paymentStatus === 'pending') {
-        paymentStatus = 'overdue';
+      if (lastPayment && isPast(new Date(lastPayment.dueDate)) && paymentStatus === 'pending') {
+          paymentStatus = 'overdue';
+      }
+      
+      if (plan && lastPayment && (paymentStatus === 'pending' || paymentStatus === 'overdue')) {
+          const dueDate = new Date(lastPayment.dueDate);
+          const today = new Date();
+          
+          if (isBefore(dueDate, today)) {
+              const monthsDiff = differenceInMonths(today, dueDate);
+              const cyclesMissed = Math.floor(monthsDiff / plan.duration) + 1;
+              balance = cyclesMissed * plan.price;
+          } else {
+              balance = plan.price;
+          }
+      }
+
+      return {
+        ...member,
+        paymentStatus,
+        lastPayment: lastPayment,
+        planName: plan?.name || 'N/A',
+        balance,
+      };
+    });
+
+    const filteredByStatus = allMembersWithPaymentInfo.filter(member => {
+        if (filter === 'all') return true;
+        return member.paymentStatus === filter;
+    });
+
+    if (!searchTerm) {
+        return filteredByStatus;
     }
-    
-    if (plan && lastPayment && (paymentStatus === 'pending' || paymentStatus === 'overdue')) {
-        const dueDate = new Date(lastPayment.dueDate);
-        const today = new Date();
-        
-        if (isBefore(dueDate, today)) {
-             const monthsDiff = differenceInMonths(today, dueDate);
-             const cyclesMissed = Math.floor(monthsDiff / plan.duration) + 1;
-             balance = cyclesMissed * plan.price;
-        } else {
-            balance = plan.price;
-        }
-    }
 
+    return filteredByStatus.filter(member => 
+        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
 
-    return {
-      ...member,
-      paymentStatus,
-      lastPayment: lastPayment,
-      planName: plan?.name || 'N/A',
-      balance,
-    };
-  }).filter(member => {
-    if (filter === 'all') return true;
-    return member.paymentStatus === filter;
-  }), [members, payments, plans, filter]);
+  }, [members, payments, plans, filter, searchTerm]);
 
-  const paginatedMembers = useMemo(() => {
-    const start = pageIndex * pageSize;
-    const end = start + pageSize;
-    return membersWithPayments.slice(start, end);
-  }, [membersWithPayments, pageIndex, pageSize]);
 
   return (
     <>
@@ -169,6 +176,16 @@ export default function PaymentsPage() {
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
+             <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder="Search by name or email..."
+                className="w-full pl-9 md:w-64"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
             <ListFilter className="h-4 w-4 text-muted-foreground" />
             <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="w-40">
@@ -193,14 +210,9 @@ export default function PaymentsPage() {
           </div>
         ) : (
           <MemberPaymentsTable
-            membersWithPayments={paginatedMembers}
+            membersWithPayments={membersWithPayments}
             reminderMessageTemplate={reminderMessage}
             onEditPayment={handleEditPayment}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            setPageIndex={setPageIndex}
-            setPageSize={setPageSize}
-            totalRows={membersWithPayments.length}
           />
         )}
       </div>

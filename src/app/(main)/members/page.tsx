@@ -25,9 +25,6 @@ export default function MembersPage() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const { toast } = useToast();
 
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-
   const fetchAllData = async () => {
     setLoading(true);
     try {
@@ -60,13 +57,6 @@ export default function MembersPage() {
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase()))
   ), [members, searchTerm]);
-
-  const paginatedMembers = useMemo(() => {
-    const start = pageIndex * pageSize;
-    const end = start + pageSize;
-    return filteredMembers.slice(start, end);
-  }, [filteredMembers, pageIndex, pageSize]);
-
 
   const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'> & { planId: string, paymentStatus: 'paid' | 'pending' }) => {
     try {
@@ -169,16 +159,11 @@ export default function MembersPage() {
         </div>
       ) : (
         <MembersTable 
-            members={paginatedMembers} 
+            members={filteredMembers} 
             payments={payments}
             plans={plans}
             onEdit={handleUpdateMember} 
             onDelete={handleDeleteMember}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            setPageIndex={setPageIndex}
-            setPageSize={setPageSize}
-            totalRows={filteredMembers.length}
         />
       )}
 
