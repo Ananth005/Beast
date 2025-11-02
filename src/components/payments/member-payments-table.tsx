@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Edit, Clock } from 'lucide-react';
+import { MoreHorizontal, Edit, Clock, MessageSquare } from 'lucide-react';
 import { Payment, Member } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -63,8 +63,9 @@ export function MemberPaymentsTable({
             <TableHead>Member</TableHead>
             <TableHead>Payment Status</TableHead>
             <TableHead className="hidden md:table-cell">Plan</TableHead>
-            <TableHead className="hidden md:table-cell">Due Date</TableHead>
             <TableHead className="hidden lg:table-cell">Balance</TableHead>
+            <TableHead className="hidden md:table-cell">Due Date</TableHead>
+            <TableHead>Reminder</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -107,13 +108,21 @@ export function MemberPaymentsTable({
                  <TableCell className="hidden md:table-cell">
                     {member.planName}
                 </TableCell>
+                <TableCell className="hidden lg:table-cell font-medium">
+                  ₹{member.balance.toFixed(2)}
+                </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {member.lastPayment
                     ? format(parseISO(member.lastPayment.dueDate), 'MMMM d, yyyy')
                     : 'N/A'}
                 </TableCell>
-                <TableCell className="hidden lg:table-cell font-medium">
-                  ₹{member.balance.toFixed(2)}
+                <TableCell>
+                   {member.lastPayment && (member.paymentStatus === 'pending' || member.paymentStatus === 'overdue') ? (
+                        <Button variant="outline" size="sm" onClick={() => handleSendReminder(member, member.lastPayment)}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Send
+                        </Button>
+                    ) : null}
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end">
@@ -132,12 +141,6 @@ export function MemberPaymentsTable({
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Payment/Plan
                           </DropdownMenuItem>
-                        {member.lastPayment && (
-                          <DropdownMenuItem onSelect={() => handleSendReminder(member, member.lastPayment)}>
-                            <Clock className="mr-2 h-4 w-4" />
-                            Send Reminder
-                          </DropdownMenuItem>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                    </div>
@@ -146,7 +149,7 @@ export function MemberPaymentsTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={7} className="h-24 text-center">
                 No members found for the selected filter.
               </TableCell>
             </TableRow>
