@@ -36,6 +36,7 @@ const memberSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.union([z.string().email({ message: 'Invalid email address.' }), z.literal("")]),
   mobileNumber: z.string().min(10, { message: 'Mobile number must be at least 10 digits.' }),
+  gender: z.enum(['male', 'female', 'other']),
   joinDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
   membershipStatus: z.enum(['active', 'inactive', 'frozen']),
   planId: z.string().min(1, { message: 'Please select a plan.'}),
@@ -58,6 +59,7 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember, plans }: Ad
       name: '',
       email: '',
       mobileNumber: '',
+      gender: 'male',
       joinDate: new Date().toISOString().split('T')[0],
       membershipStatus: 'active',
       planId: '',
@@ -71,6 +73,7 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember, plans }: Ad
         name: '',
         email: '',
         mobileNumber: '',
+        gender: 'male',
         joinDate: new Date().toISOString().split('T')[0],
         membershipStatus: 'active',
         planId: plans[0]?.id || '',
@@ -135,6 +138,28 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember, plans }: Ad
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
              <FormField
               control={form.control}
               name="joinDate"
@@ -176,7 +201,7 @@ export function AddMemberDialog({ isOpen, onOpenChange, onAddMember, plans }: Ad
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Membership Plan</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValuechange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a plan" />

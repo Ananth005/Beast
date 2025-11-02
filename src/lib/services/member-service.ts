@@ -18,6 +18,7 @@ export async function getMembers(): Promise<Member[]> {
       name: data.name || 'No Name',
       email: data.email || '',
       mobileNumber: data.mobileNumber || '',
+      gender: data.gender || 'other',
       joinDate: data.joinDate || new Date().toISOString(),
       lastVisit: data.lastVisit || new Date().toISOString(),
       membershipStatus: data.membershipStatus || 'active',

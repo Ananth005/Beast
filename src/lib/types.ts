@@ -6,6 +6,7 @@ export type Member = {
   name: string;
   email: string;
   mobileNumber: string;
+  gender: 'male' | 'female' | 'other';
   joinDate: string;
   lastVisit: string;
   membershipStatus: 'active' | 'inactive' | 'frozen';
