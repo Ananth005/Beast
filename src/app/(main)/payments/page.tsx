@@ -19,14 +19,12 @@ import {
 } from '@/lib/services/payment-service';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlanManagement } from '@/components/payments/plan-management';
-import { getPlans, addPlan, updatePlan, deletePlan } from '@/lib/services/plan-service';
+import { getPlans } from '@/lib/services/plan-service';
 import { useAuth } from '@/contexts/auth-context';
 import { getMembers } from '@/lib/services/member-service';
 import { EditPaymentDialog } from '@/components/payments/edit-payment-dialog';
 import { differenceInMonths, isBefore, isPast } from 'date-fns';
-import { ReminderMessageSettings } from '@/components/payments/reminder-message-settings';
-import { getReminderMessage, saveReminderMessage } from '@/lib/services/setting-service';
+import { getReminderMessage } from '@/lib/services/setting-service';
 
 export type MemberWithPaymentInfo = Member & {
   paymentStatus: string;
@@ -115,75 +113,6 @@ export default function PaymentsPage() {
     }
   };
 
-
-  const handleAddPlan = async (newPlanData: Omit<Plan, 'id'>) => {
-    try {
-      await addPlan(newPlanData);
-      await fetchData(); // Refetch
-      toast({
-        title: 'Plan Added',
-        description: `${newPlanData.name} has been successfully added.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to add plan.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleUpdatePlan = async (updatedPlan: Plan) => {
-    try {
-      await updatePlan(updatedPlan.id, updatedPlan);
-      await fetchData(); // Refetch
-      toast({
-        title: 'Plan Updated',
-        description: 'Plan details have been successfully updated.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update plan.',
-        variant: 'destructive',
-      });
-    }
-  };
-  
-  const handleDeletePlan = async (planId: string) => {
-    try {
-      await deletePlan(planId);
-      await fetchData(); // Refetch
-      toast({
-        title: 'Plan Deleted',
-        description: 'The plan has been successfully deleted.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete plan. Members might be associated with it.',
-        variant: 'destructive',
-      });
-    }
-  };
-  
-  const handleSaveReminder = async (message: string) => {
-      try {
-        await saveReminderMessage(message);
-        setReminderMessage(message);
-        toast({
-            title: 'Reminder Message Saved',
-            description: 'Your new reminder message has been saved.',
-        });
-      } catch (error) {
-          toast({
-              title: 'Error',
-              description: 'Failed to save reminder message.',
-              variant: 'destructive',
-          });
-      }
-  };
-
   const membersWithPayments = useMemo(() => members.map((member): MemberWithPaymentInfo => {
     const memberPayments = payments
       .filter(p => p.memberId === member.id)
@@ -235,13 +164,10 @@ export default function PaymentsPage() {
     <>
       <div className="space-y-6">
         <h1 className="font-headline text-3xl font-bold tracking-tight">
-          Payments & Plans
+          Member Payments
         </h1>
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <h2 className="font-headline text-2xl font-bold tracking-tight">
-            Member Payments
-          </h2>
           <div className="flex items-center gap-2">
             <ListFilter className="h-4 w-4 text-muted-foreground" />
             <Select value={filter} onValueChange={setFilter}>
@@ -276,21 +202,6 @@ export default function PaymentsPage() {
             setPageSize={setPageSize}
             totalRows={membersWithPayments.length}
           />
-        )}
-
-        {userRole === 'owner' && (
-          <div className='space-y-6'>
-            <ReminderMessageSettings
-                initialMessage={reminderMessage}
-                onSave={handleSaveReminder}
-            />
-            <PlanManagement 
-                plans={plans}
-                onAdd={handleAddPlan}
-                onEdit={handleUpdatePlan}
-                onDelete={handleDeletePlan}
-            />
-          </div>
         )}
       </div>
 

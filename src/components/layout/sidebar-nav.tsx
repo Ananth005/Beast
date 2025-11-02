@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   Trophy,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 import { Icons } from '../icons';
@@ -35,6 +36,7 @@ const ownerNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/members', label: 'Members', icon: Users },
   { href: '/payments', label: 'Payments', icon: CreditCard },
+  { href: '/plans', label: 'Plans', icon: FileText },
 //   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
 //   { href: '/check-in', label: 'Check-in', icon: ClipboardCheck },
 //   { href: '/profile', label: 'Profile', icon: User },
