@@ -42,7 +42,7 @@ export function DataTablePagination({
     <div className="flex items-center justify-between px-2">
       <div className="flex-1 text-sm text-muted-foreground">
         {totalRows > 0 ? 
-          `Showing ${pageIndex * pageSize + 1} to ${Math.min((pageIndex + 1) * pageSize, totalRows)} of ${totalRows} entries`
+          ``
           : 'No entries'
         }
       </div>
