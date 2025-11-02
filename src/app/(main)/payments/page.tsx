@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Payment, Plan, Member } from '@/lib/types';
 import { MemberPaymentsTable } from '@/components/payments/member-payments-table';
 import {
@@ -44,6 +44,9 @@ export default function PaymentsPage() {
   const [filter, setFilter] = useState('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberWithPaymentInfo | null>(null);
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const { toast } = useToast();
   const { userRole } = useAuth();
@@ -181,7 +184,7 @@ export default function PaymentsPage() {
       }
   };
 
-  const membersWithPayments = members.map((member): MemberWithPaymentInfo => {
+  const membersWithPayments = useMemo(() => members.map((member): MemberWithPaymentInfo => {
     const memberPayments = payments
       .filter(p => p.memberId === member.id)
       .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
@@ -220,8 +223,13 @@ export default function PaymentsPage() {
   }).filter(member => {
     if (filter === 'all') return true;
     return member.paymentStatus === filter;
-  });
+  }), [members, payments, plans, filter]);
 
+  const paginatedMembers = useMemo(() => {
+    const start = pageIndex * pageSize;
+    const end = start + pageSize;
+    return membersWithPayments.slice(start, end);
+  }, [membersWithPayments, pageIndex, pageSize]);
 
   return (
     <>
@@ -259,9 +267,14 @@ export default function PaymentsPage() {
           </div>
         ) : (
           <MemberPaymentsTable
-            membersWithPayments={membersWithPayments}
+            membersWithPayments={paginatedMembers}
             reminderMessageTemplate={reminderMessage}
             onEditPayment={handleEditPayment}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            setPageIndex={setPageIndex}
+            setPageSize={setPageSize}
+            totalRows={membersWithPayments.length}
           />
         )}
 

@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -17,17 +18,28 @@ import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MemberWithPaymentInfo } from '@/app/(main)/payments/page';
+import { DataTablePagination } from '../data-table-pagination';
 
 interface MemberPaymentsTableProps {
   membersWithPayments: MemberWithPaymentInfo[];
   reminderMessageTemplate: string;
   onEditPayment: (member: MemberWithPaymentInfo) => void;
+  pageIndex: number;
+  pageSize: number;
+  setPageIndex: (index: number) => void;
+  setPageSize: (size: number) => void;
+  totalRows: number;
 }
 
 export function MemberPaymentsTable({
   membersWithPayments,
   reminderMessageTemplate,
   onEditPayment,
+  pageIndex,
+  pageSize,
+  setPageIndex,
+  setPageSize,
+  totalRows,
 }: MemberPaymentsTableProps) {
   
   const handleSendReminder = (e: React.MouseEvent, member: Member, payment: Payment | undefined) => {
@@ -48,90 +60,102 @@ export function MemberPaymentsTable({
       alert('Member mobile number not found.');
     }
   };
+  
+  const pageCount = Math.ceil(totalRows / pageSize);
 
   return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Member</TableHead>
-            <TableHead>Payment Status</TableHead>
-            <TableHead className="hidden md:table-cell">Plan</TableHead>
-            <TableHead className="hidden lg:table-cell">Balance</TableHead>
-            <TableHead className="hidden md:table-cell">Due Date</TableHead>
-            <TableHead>Reminder</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {membersWithPayments.length > 0 ? (
-            membersWithPayments.map((member) => (
-              <TableRow key={member.id} onClick={() => onEditPayment(member)} className="cursor-pointer">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={member?.avatarUrl} alt={member.name} />
-                      <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="grid gap-0.5">
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-xs text-muted-foreground hidden md:block">
-                          {member.email}
-                        </p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                   <div className="flex flex-col gap-1 items-start">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'w-fit',
-                        member.paymentStatus === 'paid' &&
-                          'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400',
-                        member.paymentStatus === 'pending' &&
-                          'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-400',
-                        member.paymentStatus === 'overdue' &&
-                          'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400',
-                        member.paymentStatus === 'N/A' && 'border-gray-500/50 bg-gray-500/10 text-gray-500'
-                      )}
-                    >
-                      {member.paymentStatus}
-                    </Badge>
-                     <span className="text-xs font-mono md:hidden">
-                        ₹{member.balance.toFixed(2)}
-                    </span>
-                   </div>
-                </TableCell>
-                 <TableCell className="hidden md:table-cell">
-                    {member.planName}
-                </TableCell>
-                <TableCell className="hidden lg:table-cell font-medium">
-                  ₹{member.balance.toFixed(2)}
-                </TableCell>
-                <TableCell className="hidden md:table-cell">
-                  {member.lastPayment
-                    ? format(parseISO(member.lastPayment.dueDate), 'MMMM d, yyyy')
-                    : 'N/A'}
-                </TableCell>
-                <TableCell>
-                   {member.lastPayment && (member.paymentStatus === 'pending' || member.paymentStatus === 'overdue') ? (
-                        <Button variant="outline" size="sm" onClick={(e) => handleSendReminder(e, member, member.lastPayment)}>
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">Send</span>
-                        </Button>
-                    ) : null}
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
+    <div className="space-y-4">
+        <div className="rounded-lg border">
+        <Table>
+            <TableHeader>
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
-                No members found for the selected filter.
-              </TableCell>
+                <TableHead>Member</TableHead>
+                <TableHead>Payment Status</TableHead>
+                <TableHead className="hidden md:table-cell">Plan</TableHead>
+                <TableHead className="hidden lg:table-cell">Balance</TableHead>
+                <TableHead className="hidden md:table-cell">Due Date</TableHead>
+                <TableHead>Reminder</TableHead>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody>
+            {membersWithPayments.length > 0 ? (
+                membersWithPayments.map((member) => (
+                <TableRow key={member.id} onClick={() => onEditPayment(member)} className="cursor-pointer">
+                    <TableCell>
+                    <div className="flex items-center gap-3">
+                        <Avatar>
+                        <AvatarImage src={member?.avatarUrl} alt={member.name} />
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="grid gap-0.5">
+                            <p className="font-medium">{member.name}</p>
+                            <p className="text-xs text-muted-foreground hidden md:block">
+                            {member.email}
+                            </p>
+                        </div>
+                    </div>
+                    </TableCell>
+                    <TableCell>
+                    <div className="flex flex-col gap-1 items-start">
+                        <Badge
+                        variant="outline"
+                        className={cn(
+                            'w-fit',
+                            member.paymentStatus === 'paid' &&
+                            'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400',
+                            member.paymentStatus === 'pending' &&
+                            'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-400',
+                            member.paymentStatus === 'overdue' &&
+                            'border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400',
+                            member.paymentStatus === 'N/A' && 'border-gray-500/50 bg-gray-500/10 text-gray-500'
+                        )}
+                        >
+                        {member.paymentStatus}
+                        </Badge>
+                        <span className="text-xs font-mono md:hidden">
+                            ₹{member.balance.toFixed(2)}
+                        </span>
+                    </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                        {member.planName}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell font-medium">
+                    ₹{member.balance.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                    {member.lastPayment
+                        ? format(parseISO(member.lastPayment.dueDate), 'MMMM d, yyyy')
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                    {member.lastPayment && (member.paymentStatus === 'pending' || member.paymentStatus === 'overdue') ? (
+                            <Button variant="outline" size="sm" onClick={(e) => handleSendReminder(e, member, member.lastPayment)}>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                <span className="hidden sm:inline">Send</span>
+                            </Button>
+                        ) : null}
+                    </TableCell>
+                </TableRow>
+                ))
+            ) : (
+                <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                    No members found for the selected filter.
+                </TableCell>
+                </TableRow>
+            )}
+            </TableBody>
+        </Table>
+        </div>
+        <DataTablePagination 
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            pageCount={pageCount}
+            totalRows={totalRows}
+            setPageIndex={setPageIndex}
+            setPageSize={setPageSize}
+        />
     </div>
   );
 }
