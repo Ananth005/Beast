@@ -27,11 +27,13 @@ import { MemberWithPaymentInfo } from '@/app/(main)/payments/page';
 
 interface MemberPaymentsTableProps {
   membersWithPayments: MemberWithPaymentInfo[];
+  reminderMessageTemplate: string;
   onEditPayment: (member: MemberWithPaymentInfo) => void;
 }
 
 export function MemberPaymentsTable({
   membersWithPayments,
+  reminderMessageTemplate,
   onEditPayment,
 }: MemberPaymentsTableProps) {
   
@@ -41,7 +43,11 @@ export function MemberPaymentsTable({
         return;
     }
     if (member && member.mobileNumber) {
-      const message = `Hi ${member.name}, this is a friendly reminder that your payment of ₹${payment.amount} is due on ${format(parseISO(payment.dueDate), 'MMMM d, yyyy')}.`;
+      const message = reminderMessageTemplate
+        .replace('{name}', member.name)
+        .replace('{amount}', `₹${payment.amount}`)
+        .replace('{dueDate}', format(parseISO(payment.dueDate), 'MMMM d, yyyy'));
+        
       const whatsappUrl = `https://wa.me/${member.mobileNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     } else {

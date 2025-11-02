@@ -25,6 +25,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { getMembers } from '@/lib/services/member-service';
 import { EditPaymentDialog } from '@/components/payments/edit-payment-dialog';
 import { differenceInMonths, isBefore, isPast } from 'date-fns';
+import { ReminderMessageSettings } from '@/components/payments/reminder-message-settings';
+import { getReminderMessage, saveReminderMessage } from '@/lib/services/setting-service';
 
 export type MemberWithPaymentInfo = Member & {
   paymentStatus: string;
@@ -37,6 +39,7 @@ export default function PaymentsPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [reminderMessage, setReminderMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -48,14 +51,16 @@ export default function PaymentsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [fetchedMembers, fetchedPayments, fetchedPlans] = await Promise.all([
+      const [fetchedMembers, fetchedPayments, fetchedPlans, fetchedMessage] = await Promise.all([
         getMembers(),
         getPayments(),
         getPlans(),
+        getReminderMessage()
       ]);
       setMembers(fetchedMembers);
       setPayments(fetchedPayments);
       setPlans(fetchedPlans);
+      setReminderMessage(fetchedMessage);
     } catch (error) {
       toast({
         title: 'Error',
@@ -158,6 +163,23 @@ export default function PaymentsPage() {
       });
     }
   };
+  
+  const handleSaveReminder = async (message: string) => {
+      try {
+        await saveReminderMessage(message);
+        setReminderMessage(message);
+        toast({
+            title: 'Reminder Message Saved',
+            description: 'Your new reminder message has been saved.',
+        });
+      } catch (error) {
+          toast({
+              title: 'Error',
+              description: 'Failed to save reminder message.',
+              variant: 'destructive',
+          });
+      }
+  };
 
   const membersWithPayments = members.map((member): MemberWithPaymentInfo => {
     const memberPayments = payments
@@ -209,12 +231,18 @@ export default function PaymentsPage() {
         </h1>
 
         {userRole === 'owner' && (
-          <PlanManagement 
-              plans={plans}
-              onAdd={handleAddPlan}
-              onEdit={handleUpdatePlan}
-              onDelete={handleDeletePlan}
-          />
+          <div className='space-y-6'>
+            <PlanManagement 
+                plans={plans}
+                onAdd={handleAddPlan}
+                onEdit={handleUpdatePlan}
+                onDelete={handleDeletePlan}
+            />
+            <ReminderMessageSettings
+                initialMessage={reminderMessage}
+                onSave={handleSaveReminder}
+            />
+          </div>
         )}
 
 
@@ -248,6 +276,7 @@ export default function PaymentsPage() {
         ) : (
           <MemberPaymentsTable
             membersWithPayments={membersWithPayments}
+            reminderMessageTemplate={reminderMessage}
             onEditPayment={handleEditPayment}
           />
         )}
