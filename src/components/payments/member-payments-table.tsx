@@ -106,7 +106,7 @@ export function MemberPaymentsTable({
                     ? format(parseISO(member.lastPayment.dueDate), 'MMMM d, yyyy')
                     : 'N/A'}
                 </TableCell>
-                <TableCell className={cn("hidden lg:table-cell font-medium", member.balance > 0 && "text-destructive")}>
+                <TableCell className="hidden lg:table-cell font-medium">
                   ₹{member.balance.toFixed(2)}
                 </TableCell>
                 <TableCell>

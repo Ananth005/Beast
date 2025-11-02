@@ -24,7 +24,7 @@ import { getPlans, addPlan, updatePlan, deletePlan } from '@/lib/services/plan-s
 import { useAuth } from '@/contexts/auth-context';
 import { getMembers } from '@/lib/services/member-service';
 import { EditPaymentDialog } from '@/components/payments/edit-payment-dialog';
-import { differenceInMonths, isBefore } from 'date-fns';
+import { differenceInMonths, isBefore, isPast } from 'date-fns';
 
 export type MemberWithPaymentInfo = Member & {
   paymentStatus: string;
@@ -168,8 +168,12 @@ export default function PaymentsPage() {
     const plan = plans.find(p => p.id === lastPayment?.planId);
     
     let balance = 0;
-    const paymentStatus = lastPayment?.status || 'N/A';
+    let paymentStatus = lastPayment?.status || 'N/A';
 
+    if (lastPayment && isPast(new Date(lastPayment.dueDate)) && paymentStatus === 'pending') {
+        paymentStatus = 'overdue';
+    }
+    
     if (plan && lastPayment && (paymentStatus === 'pending' || paymentStatus === 'overdue')) {
         const dueDate = new Date(lastPayment.dueDate);
         const today = new Date();
