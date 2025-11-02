@@ -77,7 +77,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
       .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
     
     if (memberPayments.length === 0) {
-      return { planName: 'N/A', paymentStatus: 'N/A' };
+      return { planName: 'N/A', paymentStatus: 'N/A', nextDueDate: null };
     }
 
     const latestPayment = memberPayments[0];
@@ -86,6 +86,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
     return {
       planName: plan?.name ?? 'Unknown Plan',
       paymentStatus: latestPayment.status,
+      nextDueDate: latestPayment.dueDate,
     };
   };
 
@@ -98,6 +99,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
               <TableHead>Name</TableHead>
               <TableHead className="hidden md:table-cell">Payment Status</TableHead>
               <TableHead className="hidden lg:table-cell">Plan</TableHead>
+              <TableHead className="hidden md:table-cell">Next Due Date</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -106,7 +108,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
           <TableBody>
             {members.length > 0 ? (
               members.map((member) => {
-                const { planName, paymentStatus } = getMemberPaymentInfo(member.id);
+                const { planName, paymentStatus, nextDueDate } = getMemberPaymentInfo(member.id);
                 return (
                 <TableRow key={member.id}>
                   <TableCell>
@@ -141,6 +143,9 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
                   <TableCell className="hidden lg:table-cell">
                     {planName}
                   </TableCell>
+                   <TableCell className="hidden md:table-cell">
+                    {nextDueDate ? format(parseISO(nextDueDate), 'MMMM d, yyyy') : 'N/A'}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -170,7 +175,7 @@ export function MembersTable({ members, payments, plans, onEdit, onDelete }: Mem
               )})
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No members found.
                 </TableCell>
               </TableRow>
