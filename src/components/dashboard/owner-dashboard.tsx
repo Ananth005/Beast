@@ -7,32 +7,29 @@ import { Users, IndianRupee, UserCheck, UserPlus } from 'lucide-react';
 import { getMembers } from '@/lib/services/member-service';
 import { getPayments } from '@/lib/services/payment-service';
 import { Member, Payment } from '@/lib/types';
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, startOfYear, endOfYear, getYear, getMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, startOfYear, endOfYear, getYear, getMonth, setYear, setMonth } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const generateMonthOptions = () => {
-    const options = [{ label: 'All Year', value: 'all-year' }];
+const generateYearOptions = () => {
     const currentYear = getYear(new Date());
-    for (let i = 0; i < 12; i++) {
-        const date = new Date(currentYear, i);
-        options.push({
-            label: format(date, 'MMMM yyyy'),
-            value: format(date, 'yyyy-MM'),
-        });
+    const years = [];
+    for (let i = 0; i < 5; i++) {
+        years.push(currentYear - i);
     }
-    return options;
+    return years;
 };
 
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<Member[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
-
-  const monthOptions = generateMonthOptions();
-  const currentMonthValue = format(new Date(), 'yyyy-MM');
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthValue);
+  
+  const yearOptions = generateYearOptions();
+  const [selectedYear, setSelectedYear] = useState<number>(getYear(new Date()));
+  const [selectedMonth, setSelectedMonth] = useState<string>((getMonth(new Date())).toString());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,18 +45,18 @@ export function OwnerDashboard() {
     fetchData();
   }, []);
 
-  let interval;
-  let description;
+  let interval: { start: Date; end: Date; };
+  let description: string;
+  const displayDate = setYear(new Date(), selectedYear);
 
   if (selectedMonth === 'all-year') {
-    const now = new Date();
-    interval = { start: startOfYear(now), end: endOfYear(now) };
-    description = `In ${getYear(now)}`;
+    interval = { start: startOfYear(displayDate), end: endOfYear(displayDate) };
+    description = `In ${selectedYear}`;
   } else {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const date = new Date(year, month - 1);
-    interval = { start: startOfMonth(date), end: endOfMonth(date) };
-    description = format(date, 'MMMM yyyy');
+    const monthIndex = parseInt(selectedMonth, 10);
+    const dateWithMonth = setMonth(displayDate, monthIndex);
+    interval = { start: startOfMonth(dateWithMonth), end: endOfMonth(dateWithMonth) };
+    description = format(dateWithMonth, 'MMMM yyyy');
   }
 
   // Filter data for the selected interval
@@ -99,18 +96,33 @@ export function OwnerDashboard() {
         <h1 className="font-headline text-3xl font-bold tracking-tight">
           Business Dashboard
         </h1>
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Select a month" />
-          </SelectTrigger>
-          <SelectContent>
-            {monthOptions.map(option => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Select a month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all-year">All Year</SelectItem>
+                {monthNames.map((month, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                        {month}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedYear.toString()} onValueChange={(year) => setSelectedYear(parseInt(year, 10))}>
+              <SelectTrigger className="w-full md:w-32">
+                <SelectValue placeholder="Select a year" />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map(year => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
