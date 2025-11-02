@@ -230,22 +230,6 @@ export default function PaymentsPage() {
           Payments & Plans
         </h1>
 
-        {userRole === 'owner' && (
-          <div className='space-y-6'>
-            <PlanManagement 
-                plans={plans}
-                onAdd={handleAddPlan}
-                onEdit={handleUpdatePlan}
-                onDelete={handleDeletePlan}
-            />
-            <ReminderMessageSettings
-                initialMessage={reminderMessage}
-                onSave={handleSaveReminder}
-            />
-          </div>
-        )}
-
-
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <h2 className="font-headline text-2xl font-bold tracking-tight">
             Member Payments
@@ -279,6 +263,21 @@ export default function PaymentsPage() {
             reminderMessageTemplate={reminderMessage}
             onEditPayment={handleEditPayment}
           />
+        )}
+
+        {userRole === 'owner' && (
+          <div className='space-y-6'>
+            <ReminderMessageSettings
+                initialMessage={reminderMessage}
+                onSave={handleSaveReminder}
+            />
+            <PlanManagement 
+                plans={plans}
+                onAdd={handleAddPlan}
+                onEdit={handleUpdatePlan}
+                onDelete={handleDeletePlan}
+            />
+          </div>
         )}
       </div>
 
