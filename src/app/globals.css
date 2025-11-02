@@ -66,4 +66,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  .hue-rotate-animation {
+    animation: hue-rotate 10s infinite linear;
+  }
+  @keyframes hue-rotate {
+    0% {
+      filter: hue-rotate(0deg) brightness(0.7);
+    }
+    100% {
+      filter: hue-rotate(360deg) brightness(0.7);
+    }
+  }
 }
