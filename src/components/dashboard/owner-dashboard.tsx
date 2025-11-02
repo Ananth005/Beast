@@ -13,10 +13,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const generateYearOptions = () => {
     const currentYear = getYear(new Date());
+    const lastYear = 2025;
     const years = [];
-    for (let i = 0; i < 5; i++) {
-        years.push(currentYear - i);
+    const endYear = Math.max(currentYear, lastYear);
+    
+    for (let year = currentYear; year <= endYear; year++) {
+        years.push(year);
     }
+    
+    if (currentYear > lastYear) {
+      years.push(currentYear + 1);
+    }
+
     return years;
 };
 
