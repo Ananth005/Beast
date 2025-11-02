@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Search, Loader2 } from 'lucide-react';
@@ -23,6 +24,9 @@ export default function MembersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const { toast } = useToast();
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -51,10 +55,17 @@ export default function MembersPage() {
     fetchAllData();
   }, []);
 
-  const filteredMembers = members.filter((member) =>
+  const filteredMembers = useMemo(() => members.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  ), [members, searchTerm]);
+
+  const paginatedMembers = useMemo(() => {
+    const start = pageIndex * pageSize;
+    const end = start + pageSize;
+    return filteredMembers.slice(start, end);
+  }, [filteredMembers, pageIndex, pageSize]);
+
 
   const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'> & { planId: string, paymentStatus: 'paid' | 'pending' }) => {
     try {
@@ -143,7 +154,7 @@ export default function MembersPage() {
           </div>
           <Button onClick={() => setIsAddMemberOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Non-Login Member
+            Add a Member
           </Button>
         </div>
       </div>
@@ -157,11 +168,16 @@ export default function MembersPage() {
         </div>
       ) : (
         <MembersTable 
-            members={filteredMembers} 
+            members={paginatedMembers} 
             payments={payments}
             plans={plans}
             onEdit={handleUpdateMember} 
             onDelete={handleDeleteMember}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            setPageIndex={setPageIndex}
+            setPageSize={setPageSize}
+            totalRows={filteredMembers.length}
         />
       )}
 
