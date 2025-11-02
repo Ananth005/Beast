@@ -3,22 +3,36 @@
 
 import { useState, useEffect } from 'react';
 import { StatCard } from './stat-card';
-import { Users, TrendingUp, IndianRupee, UserCheck, UserPlus, Calendar as CalendarIcon } from 'lucide-react';
+import { Users, IndianRupee, UserCheck, UserPlus } from 'lucide-react';
 import { getMembers } from '@/lib/services/member-service';
 import { getPayments } from '@/lib/services/payment-service';
 import { Member, Payment } from '@/lib/types';
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, startOfYear, endOfYear, getYear, getMonth } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Button } from '../ui/button';
-import { Calendar } from '../ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const generateMonthOptions = () => {
+    const options = [{ label: 'All Year', value: 'all-year' }];
+    const currentYear = getYear(new Date());
+    for (let i = 0; i < 12; i++) {
+        const date = new Date(currentYear, i);
+        options.push({
+            label: format(date, 'MMMM yyyy'),
+            value: format(date, 'yyyy-MM'),
+        });
+    }
+    return options;
+};
+
 
 export function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
   const [members, setMembers] = useState<Member[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+
+  const monthOptions = generateMonthOptions();
+  const currentMonthValue = format(new Date(), 'yyyy-MM');
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthValue);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,21 +48,32 @@ export function OwnerDashboard() {
     fetchData();
   }, []);
 
-  const monthStart = startOfMonth(selectedDate);
-  const monthEnd = endOfMonth(selectedDate);
+  let interval;
+  let description;
 
-  // Filter data for the selected month
-  const paymentsInMonth = payments.filter(p => p.paidDate && isWithinInterval(parseISO(p.paidDate), { start: monthStart, end: monthEnd }));
-  const newMembersInMonth = members.filter(m => isWithinInterval(parseISO(m.joinDate), { start: monthStart, end: monthEnd }));
+  if (selectedMonth === 'all-year') {
+    const now = new Date();
+    interval = { start: startOfYear(now), end: endOfYear(now) };
+    description = `In ${getYear(now)}`;
+  } else {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 1);
+    interval = { start: startOfMonth(date), end: endOfMonth(date) };
+    description = format(date, 'MMMM yyyy');
+  }
+
+  // Filter data for the selected interval
+  const paymentsInInterval = payments.filter(p => p.paidDate && isWithinInterval(parseISO(p.paidDate), interval));
+  const newMembersInInterval = members.filter(m => isWithinInterval(parseISO(m.joinDate), interval));
   
-  const pendingPaymentsInMonth = payments.filter(p => {
+  const pendingPaymentsInInterval = payments.filter(p => {
     const dueDate = parseISO(p.dueDate);
-    return (p.status === 'pending' || p.status === 'overdue') && isWithinInterval(dueDate, { start: monthStart, end: monthEnd });
+    return (p.status === 'pending' || p.status === 'overdue') && isWithinInterval(dueDate, interval);
   });
 
   // Calculate stats
-  const totalRevenueThisMonth = paymentsInMonth.reduce((acc, p) => acc + p.amount, 0);
-  const feesBalanceThisMonth = pendingPaymentsInMonth.reduce((acc, p) => acc + p.amount, 0);
+  const totalRevenue = paymentsInInterval.reduce((acc, p) => acc + p.amount, 0);
+  const feesBalance = pendingPaymentsInInterval.reduce((acc, p) => acc + p.amount, 0);
   
   const activeMembers = members.filter(m => m.membershipStatus === 'active');
   const totalMaleMembers = activeMembers.filter(m => m.gender === 'male').length;
@@ -74,22 +99,18 @@ export function OwnerDashboard() {
         <h1 className="font-headline text-3xl font-bold tracking-tight">
           Business Dashboard
         </h1>
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal md:w-auto">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(selectedDate, 'MMMM yyyy')}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(day) => day && setSelectedDate(day)}
-                    initialFocus
-                />
-            </PopoverContent>
-        </Popover>
+        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <SelectTrigger className="w-full md:w-48">
+            <SelectValue placeholder="Select a month" />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -101,21 +122,21 @@ export function OwnerDashboard() {
         />
         <StatCard
           title="Monthly Revenue"
-          value={`₹${totalRevenueThisMonth.toLocaleString()}`}
+          value={`₹${totalRevenue.toLocaleString()}`}
           icon={IndianRupee}
-          description={format(selectedDate, 'MMMM yyyy')}
+          description={description}
         />
         <StatCard
           title="Fees Outstanding"
-          value={`₹${feesBalanceThisMonth.toLocaleString()}`}
+          value={`₹${feesBalance.toLocaleString()}`}
           icon={UserCheck}
-          description={`For ${format(selectedDate, 'MMMM yyyy')}`}
+          description={`For ${description}`}
         />
         <StatCard
           title="New Members"
-          value={`+${newMembersInMonth.length}`}
+          value={`+${newMembersInInterval.length}`}
           icon={UserPlus}
-          description={`In ${format(selectedDate, 'MMMM yyyy')}`}
+          description={description}
         />
       </div>
     </div>
