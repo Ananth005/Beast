@@ -52,8 +52,7 @@ export default function LoginPage() {
           </h1>
         </div>
         <p className="max-w-md text-base text-muted-foreground sm:text-lg">
-          Unleash your potential. The ultimate platform for gym members and
-          owners to track, manage, and grow.
+          Hey, Boss lets get into beast mode
         </p>
         
         <div className="flex w-full max-w-xs flex-col gap-4">
