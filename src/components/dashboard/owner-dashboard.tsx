@@ -17,7 +17,7 @@ export function OwnerDashboard() {
       <h1 className="font-headline text-3xl font-bold tracking-tight">
         Business Dashboard
       </h1>
-      <AnnouncementBanner />
+      {/* <AnnouncementBanner /> */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Active Users Today"
@@ -45,11 +45,11 @@ export function OwnerDashboard() {
         />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+        {/* <div className="lg:col-span-2 space-y-6">
             <AttendanceTrendsChart />
             <CreateAnnouncement />
-        </div>
-        <Card>
+        </div> */}
+        {/* <Card>
             <CardHeader>
                 <CardTitle>Recent Check-ins</CardTitle>
                 <CardDescription>Members who visited today.</CardDescription>
@@ -74,7 +74,7 @@ export function OwnerDashboard() {
                     )}
                 </ul>
             </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
