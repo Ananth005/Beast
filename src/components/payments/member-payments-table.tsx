@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MemberWithPaymentInfo } from '@/app/(main)/payments/page';
 
 interface MemberPaymentsTableProps {
-  membersWithPayments: MemberWithPaymentinfo[];
+  membersWithPayments: MemberWithPaymentInfo[];
   reminderMessageTemplate: string;
   onEditPayment: (member: MemberWithPaymentInfo) => void;
 }
@@ -74,7 +74,7 @@ export function MemberPaymentsTable({
                     </Avatar>
                     <div className="grid gap-0.5">
                         <p className="font-medium">{member.name}</p>
-                        <p className="text-xs text-muted-foreground md:hidden">
+                        <p className="text-xs text-muted-foreground hidden md:block">
                           {member.email}
                         </p>
                     </div>
@@ -98,7 +98,7 @@ export function MemberPaymentsTable({
                       {member.paymentStatus}
                     </Badge>
                      <span className="text-xs font-mono md:hidden">
-                        Balance: ₹{member.balance.toFixed(2)}
+                        ₹{member.balance.toFixed(2)}
                     </span>
                    </div>
                 </TableCell>
