@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { Loader2, User, Shield, Chrome } from 'lucide-react';
+import  DarkVeil  from '@/components/DarkVeil';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,7 +31,8 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background">
       <div className="absolute inset-0 z-0">
-        <Image
+        <DarkVeil />
+        {/* <Image
           src="https://picsum.photos/seed/beastmode/1920/1080"
           alt="Background gym"
           fill
@@ -38,8 +40,8 @@ export default function LoginPage() {
           style={{ animationDuration: '20s' }}
           data-ai-hint="gym background"
           priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
+        /> */}
+        {/* <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" /> */}
       </div>
       <div className="relative z-10 flex flex-col items-center space-y-4 px-4 text-center sm:space-y-6">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -58,7 +60,7 @@ export default function LoginPage() {
             <Chrome className="mr-2 h-5 w-5" />
             Sign in with Google
           </Button>
-           <p className="text-xs text-muted-foreground">Or use a mock account for testing:</p>
+           {/* <p className="text-xs text-muted-foreground">Or use a mock account for testing:</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <Button onClick={() => loginAsRole('user')} size="lg" disabled={loading} className="flex-1">
               <User className="mr-2 h-5 w-5" />
@@ -68,7 +70,7 @@ export default function LoginPage() {
               <Shield className="mr-2 h-5 w-5" />
               Login as Owner
             </Button>
-          </div>
+          </div> */}
         </div>
 
       </div>

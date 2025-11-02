@@ -36,7 +36,8 @@ export default function MembersPage() {
         getPayments(),
         getPlans(),
       ]);
-      setMembers(fetchedMembers);
+      const sortedMembers = fetchedMembers.sort((a, b) => a.name.localeCompare(b.name));
+      setMembers(sortedMembers);
       setPayments(fetchedPayments);
       setPlans(fetchedPlans);
     } catch (error) {
