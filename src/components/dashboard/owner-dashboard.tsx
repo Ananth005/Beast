@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { StatCard } from './stat-card';
 import { Users, TrendingUp, IndianRupee, UserCheck, UserPlus, Calendar as CalendarIcon } from 'lucide-react';
-import { MembershipStatusChart, MonthlyRevenueChart } from './charts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getMembers } from '@/lib/services/member-service';
 import { getPayments } from '@/lib/services/payment-service';
@@ -52,12 +51,6 @@ export function OwnerDashboard() {
   const feesBalanceThisMonth = pendingPaymentsInMonth.reduce((acc, p) => acc + p.amount, 0);
   const totalMaleMembers = members.filter(m => m.gender === 'male').length;
   const totalFemaleMembers = members.filter(m => m.gender === 'female').length;
-  
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-        setSelectedDate(date);
-    }
-  }
 
   if (loading) {
       return (
@@ -94,11 +87,11 @@ export function OwnerDashboard() {
                 <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    initialFocus
-                    defaultMonth={selectedDate}
+                    onSelect={(day) => day && setSelectedDate(day)}
+                    month={selectedDate}
                     onMonthChange={setSelectedDate}
-                    disabled={(date) => date > new Date()}
+                    disabled={(date) => date > new Date() || date < new Date('2000-01-01')}
+                    captionLayout="dropdown-buttons" fromYear={2015} toYear={new Date().getFullYear()}
                 />
             </PopoverContent>
         </Popover>
@@ -129,15 +122,6 @@ export function OwnerDashboard() {
           icon={UserPlus}
           description={`In ${format(selectedDate, 'MMMM yyyy')}`}
         />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-             <MonthlyRevenueChart payments={payments} selectedDate={selectedDate} />
-        </div>
-        <div className="lg:col-span-2">
-            <MembershipStatusChart members={members} />
-        </div>
       </div>
     </div>
   );
