@@ -9,22 +9,33 @@ import { v4 as uuidv4 } from 'uuid';
 const membersCollection = collection(db, 'members');
 
 export async function getMembers(): Promise<Member[]> {
-  const snapshot = await getDocs(membersCollection);
-  // Map documents from the 'members' collection to the Member type
-  return snapshot.docs.map(doc => {
+  // Step 1: Fetch all members
+  const snapshot = await getDocs(collection(db, "members"));
+  const members = snapshot.docs.map(doc => {
     const data = doc.data();
     return {
       id: doc.id,
-      name: data.name || 'No Name',
-      email: data.email || '',
-      mobileNumber: data.mobileNumber || '',
-      gender: data.gender || 'other',
+      name: data.name || "No Name",
+      email: data.email || "",
+      mobileNumber: data.mobileNumber || "",
+      gender: data.gender || "other",
       joinDate: data.joinDate || new Date().toISOString(),
       lastVisit: data.lastVisit || new Date().toISOString(),
-      membershipStatus: data.membershipStatus || 'active',
-      avatarUrl: data.avatarUrl || `https://picsum.photos/seed/${doc.id}/100/100`
+      membershipStatus: data.membershipStatus || "active",
+      avatarUrl: data.avatarUrl || `https://picsum.photos/seed/${doc.id}/100/100`,
     } as Member;
   });
+
+  // Step 2: Fetch all users who have role === "owner"
+  const ownersQuery = query(collection(db, "users"), where("role", "==", "owner"));
+  const ownersSnapshot = await getDocs(ownersQuery);
+  const ownerIds = ownersSnapshot.docs.map(doc => doc.id);
+
+  // Step 3: Filter out members who are also owners
+  const filteredMembers = members.filter(member => !ownerIds.includes(member.id));
+
+  // Step 4: Return the filtered list
+  return filteredMembers;
 }
 
 export async function addMember(memberData: Omit<Member, 'id' | 'lastVisit' | 'avatarUrl'>): Promise<Member> {
